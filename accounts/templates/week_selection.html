@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="week-header text-center">Hafta seç</div>  <!-- Həftə seçimi başlığı -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-3 mb-4">
+                <a href="/modules/1">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">1. Hafta</button>
+                </a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <a href="/modules/2">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">2. Hafta</button>
+                </a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <a href="/modules/3">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">3. Hafta</button>
+                </a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <a href="/modules/4">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">4. Hafta</button>
+                </a>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-3 mb-4">
+                <a href="/modules/5">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">5. Hafta</button>
+                </a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <a href="/modules/6">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">6. Hafta</button>
+                </a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <a href="/modules/7">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">7. Hafta</button>
+                </a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <a href="/modules/8">
+                    <button class="week-btn btn btn-lg btn-block p-4 shadow-sm">8. Hafta</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .week-header {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .week-btn {
+            background-color: #17a2b8; /* İŞİTSEL DİQQƏT MODULU-nun rəngi */
+            color: white;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .week-btn:hover {
+            background-color: #138496; /* Hover zamanı daha tünd rəng */
+            transform: translateY(-5px);
+        }
+    </style>
+{% endblock %}

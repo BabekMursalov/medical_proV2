@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">İŞİTSEL FİGÜR MODULU</h3>
+    <p class="text-center">Arka plan gürültüsünde kelimeler ve cümleler dinleyeceksiniz. Uyaranı dinledikten sonra anladığınız kelimeleri/cümleleri anladığınız şekilde tekrar ediniz.’ </p>
+
+    <div class="text-center">
+        <p id="audioPlayingText">Ses<span id="currentAudioNumber">1</span> dinliyorsunuz...</p>
+        <audio id="audioPlayer" controls></audio>
+
+        <!-- Səs Qeydini Başlat düyməsi -->
+        <button id="startRecordingButton" class="btn btn-danger mt-3" onclick="startRecording()">Ses kaydınızı başlatınız</button>
+
+        <!-- Səs qeydi üçün saniyə sayğacı -->
+        <p id="recordingTime" class="mt-2">00:00</p>
+
+        <!-- Yadda Saxla düyməsi -->
+        <button id="saveRecordingButton" class="btn btn-success mt-3" onclick="saveRecording()" style="display:none;">Save</button>
+
+        <!-- Modulu Bitir düyməsi -->
+        <button id="finishModuleButton" class="btn btn-warning mt-3" style="display:none;">Modulü bitir</button>
+    </div>
+</div>
+
+<script>
+    const audioFiles = [
+        {% for audio_url in audio_urls %}
+            '{{ audio_url }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentAudioIndex = 0;
+    let recordingTimer;
+    let isRecording = false;
+    let audioChunks = []; // Səs məlumatlarının toplandığı dəyişən
+    const audioElement = document.getElementById('audioPlayer');
+    const startRecordingButton = document.getElementById("startRecordingButton");
+    const saveRecordingButton = document.getElementById("saveRecordingButton");
+    const finishModuleButton = document.getElementById("finishModuleButton");
+    const recordingTimeDisplay = document.getElementById("recordingTime");
+    const audioPlayingText = document.getElementById("audioPlayingText");
+
+    function loadAudio(index) {
+        audioElement.src = audioFiles[index];
+        audioElement.load();
+        startRecordingButton.style.display = "block";
+        saveRecordingButton.style.display = "none";
+        finishModuleButton.style.display = "none";
+        recordingTimeDisplay.textContent = "00:00";
+        audioPlayingText.textContent = `Ses ${index + 1} dinleniyor...`;
+    }
+
+    function resetRecordingTimer() {
+        clearInterval(recordingTimer);
+        recordingTimeDisplay.textContent = "00:00";
+    }
+
+    function startRecording() {
+        audioChunks = []; // Yeni səs üçün audioChunks sıfırlanır
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                isRecording = true;
+                startRecordingButton.style.display = "none";
+                saveRecordingButton.style.display = "block";
+                resetRecordingTimer();
+                let seconds = 0;
+
+                recordingTimer = setInterval(() => {
+                    seconds++;
+                    recordingTimeDisplay.textContent = `00:${seconds < 10 ? '0' : ''}${seconds}`;
+                }, 1000);
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    saveRecording(audioBlob); // Səsi göndərmək üçün saveRecording funksiyasına ötürülür
+                };
+                
+                saveRecordingButton.onclick = () => {
+                    mediaRecorder.stop(); // Səsin qeydini dayandırırıq
+                };
+            });
+    }
+
+    function saveRecording(audioBlob) {
+    clearInterval(recordingTimer);
+    saveRecordingButton.style.display = "none";
+
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+    formData.append('week', '{{ week }}');  // Həftə məlumatı
+    formData.append('module_name', 'Figür-zemin modülü');  // Modulun adı
+    formData.append('ses_index', currentAudioIndex + 1);  // Dinlənilən səsin nömrəsi (1-10 arası)
+
+    fetch('/save-audio-zemin/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log(`Səs ${currentAudioIndex + 1} qeydi saxlanıldı.`);
+            if (currentAudioIndex < audioFiles.length - 1) {
+                setTimeout(() => {
+                    currentAudioIndex++;
+                    loadAudio(currentAudioIndex);
+                }, 100);  // Növbəti səs üçün fasilə
+            } else {
+                finishModuleButton.style.display = "block";
+            }
+        } else {
+            console.error("Səs qeydi saxlanmadı.");
+        }
+    })
+    .catch(err => console.error("Xəta baş verdi:", err));
+}
+
+
+    finishModuleButton.addEventListener('click', function () {
+        fetch('/complete-module/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                week: '{{ week }}',
+                module: 'Figür-zemin modülü'
+            })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Modul bitdi və artıq yenidən açıla bilməz.');
+                window.location.href = '/week-selection/';
+            }
+        }).catch(err => {
+            console.error('Xəta baş verdi:', err);
+        });
+    });
+
+    loadAudio(currentAudioIndex); // İlk səsi yükləyir
+</script>
+
+
+{% endblock %}

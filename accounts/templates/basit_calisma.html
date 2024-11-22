@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h4 class="text-center">BASİT ÇALIŞMA BELLEĞİ</h4>
+    <p class="text-center">Bir dakika süre boyunca ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.</p>
+    <div class="text-center">
+        <h5 id="countdown">60 saniye kaldı</h5>
+        <button id="startRecording" class="btn btn-danger mt-3">Ses kaydını başlat</button>
+        <button id="stopRecording" class="btn btn-secondary mt-3" style="display: none;">Durdur</button>
+        <button id="finishButton" class="btn btn-success mt-3" style="display: none;" disabled>Bitti</button>
+    </div>
+</div>
+
+<script>
+    const startRecordingButton = document.getElementById('startRecording');
+const stopRecordingButton = document.getElementById('stopRecording');
+const finishButton = document.getElementById('finishButton');
+const countdownElement = document.getElementById('countdown');
+let mediaRecorder;
+let countdownInterval;
+let audioChunks = [];
+let isRecording = false;
+
+// Səs qeydini başlat və düymələrin görünüşünü dəyiş
+startRecordingButton.addEventListener('click', function () {
+    startCountdown(60, countdownElement);
+    startRecording();
+    startRecordingButton.style.display = 'none';
+    stopRecordingButton.style.display = 'inline-block';
+});
+
+// Geri sayım funksiyası
+function startCountdown(duration, display) {
+    let timer = duration, minutes, seconds;
+    countdownInterval = setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        display.textContent = minutes + ":" + seconds + " saniye ";
+
+        if (--timer < 0) {
+            clearInterval(countdownInterval);
+            finishRecording();
+        }
+    }, 1000);
+}
+
+// Səs qeydini başlatma funksiyası
+function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+                formData.append('week', '{{ week }}'); // Həftə dəyərini POST məlumatlarına əlavə edirik
+
+                // Səs qeydi serverə göndərilir
+                fetch('/save-audio-basit/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: formData
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Səs qeydi saxlanıldı.");
+                    } else {
+                        console.log("Səs qeydi saxlanmadı.");
+                    }
+                });
+            };
+        });
+}
+
+// Səs qeydini dayandırma və geri sayımı sıfırlama
+stopRecordingButton.addEventListener('click', finishRecording);
+
+function finishRecording() {
+    if (isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+    }
+    clearInterval(countdownInterval);
+    stopRecordingButton.style.display = 'none';
+    finishButton.style.display = 'inline-block';
+    finishButton.disabled = false;
+}
+
+// "Bitti" düyməsinə klik edildikdə
+finishButton.addEventListener('click', function () { 
+    fetch('/complete-module/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            week: '{{ week }}',
+            module: 'Basit Çalışma Belleği Modülü'
+        })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Modul bitdi və artıq yenidən açıla bilməz.');
+            window.location.href = '/calisma-bellegi/' + '{{ week }}';
+        }
+    }).catch(err => {
+        console.error('Xəta baş verdi:', err);
+    });
+});
+
+
+</script>
+{% endblock %}

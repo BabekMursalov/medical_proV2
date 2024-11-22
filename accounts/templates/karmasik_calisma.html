@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h4 class="text-center">KARMAŞIK ÇALIŞMA BELLEĞİ</h4>
+
+    <!-- 1. AŞAMA: Geri sayım və səs qeydi -->
+    <div id="asama1" class="mt-5">
+        <h5 class="text-center">1. AŞAMA</h5>
+        <p class="text-center">‘Bir dakika süre boyunca 100’den geriye doğru ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.’</p>
+        <div class="text-center">
+            <h5 id="countdown1">01:00</h5>
+            <button id="startAsama1" class="btn btn-danger">Ses kaydını başlat</button>
+            <button id="stopAsama1" class="btn btn-secondary" style="display:none;">Durdur</button>
+            <button id="finishAsama1" class="btn btn-success" style="display:none;" disabled>Bitti</button>
+        </div>
+    </div>
+
+    <!-- 2. AŞAMA: Videolar və klik izləməsi -->
+    <div id="asama2" class="mt-5" style="display:none;">
+        <h5 class="text-center">2. AŞAMA</h5>
+        <p class="text-center">‘Sayısal uyaran dizileri (0-9) ekranda sunulacaktır. Sunulan görsel uyaran bir önceki uyaranla aynı olduğunda klavyedeki hər hansı bir tuşa basınız.’</p>
+
+        <!-- Video 1 -->
+        <div id="video1Container" class="text-center">
+            <video id="video1" controls width="320">
+                <source src="{{ video_urls.0 }}" type="video/mp4">
+                Videonuz cihaz tərəfindən dəstəklənmir.
+            </video>
+            <button id="clickButton1" class="btn btn-primary mt-2">Klikle</button>
+            <p id="clickCounter1">0 klik edildi</p>
+        </div>
+        
+        <div id="video2Container" class="text-center" style="display:none;">
+            <video id="video2" controls width="320">
+                <source src="{{ video_urls.1 }}" type="video/mp4">
+                Videonuz cihaz tərəfindən dəstəklənmir.
+            </video>
+            <button id="clickButton2" class="btn btn-primary mt-2">Klikle</button>
+            <p id="clickCounter2">0 klik edildi</p>
+        </div>
+        
+        <div id="video3Container" class="text-center" style="display:none;">
+            <video id="video3" controls width="320">
+                <source src="{{ video_urls.2 }}" type="video/mp4">
+                Videonuz cihaz tərəfindən dəstəklənmir.
+            </video>
+            <button id="clickButton3" class="btn btn-primary mt-2">Klikle</button>
+            <p id="clickCounter3">0 klik edildi</p>
+        </div>
+        
+        <!-- Keçid və Kaydet düymələri -->
+        <div class="text-center mt-4">
+            <button id="nextVideo2Button" class="btn btn-primary" style="display:none;">2-ci Videoya Keç</button>
+            <button id="nextVideo3Button" class="btn btn-primary" style="display:none;">3-cü Videoya Keç</button>
+            <button id="kaydetButton" class="btn btn-success" style="display:none;">Kaydet</button>
+            <button id="finishAsama2" class="btn btn-warning" style="display:none;" disabled>Bitti</button>
+        </div>
+        
+        
+    </div>
+</div>
+
+<script>
+let countdownInterval;
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
+document.getElementById('startAsama1').addEventListener('click', function () {
+    startCountdown(60, document.getElementById('countdown1'));
+    startRecording();
+    document.getElementById('startAsama1').style.display = 'none';
+    document.getElementById('stopAsama1').style.display = 'block';
+});
+
+document.getElementById('stopAsama1').addEventListener('click', function () {
+    stopRecording();
+    clearInterval(countdownInterval);
+    document.getElementById('stopAsama1').style.display = 'none';
+    document.getElementById('finishAsama1').style.display = 'block';
+    document.getElementById('finishAsama1').disabled = false;
+});
+
+document.getElementById('finishAsama1').addEventListener('click', function () {
+    alert('1. Aşama tamamlandı.');
+    document.getElementById('asama1').style.display = 'none';
+    document.getElementById('asama2').style.display = 'block';  // 2-ci aşama aktiv edilir
+});
+
+function startCountdown(duration, display) {
+    let timer = duration, minutes, seconds;
+    countdownInterval = setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        display.textContent = minutes + ":" + seconds + " saniyə qaldı";
+        if (--timer < 0) {
+            clearInterval(countdownInterval);
+            stopRecording();
+            document.getElementById('stopAsama1').style.display = 'none';
+            document.getElementById('finishAsama1').style.display = 'block';
+            document.getElementById('finishAsama1').disabled = false;
+        }
+    }, 1000);
+}
+
+function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+                formData.append('week', '{{ week }}'); // Həftə dəyərini POST məlumatlarına əlavə edirik
+
+                fetch('/save-audio-karmaşik/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: formData
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Səs qeydi saxlanıldı.");
+                    } else {
+                        console.log("Səs qeydi saxlanmadı.");
+                    }
+                });
+            };
+        });
+}
+
+function stopRecording() {
+    if (isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+    }
+}
+//2-ci aşama
+let clickCount1 = 0;
+let clickCount2 = 0;
+let clickCount3 = 0;
+
+document.getElementById('clickButton1').addEventListener('click', function () {
+    clickCount1++;
+    document.getElementById('clickCounter1').textContent = clickCount1 + " klik edildi";
+    document.getElementById('nextVideo2Button').style.display = 'block'; // 2-ci videoya keç düyməsini göstər
+});
+
+document.getElementById('nextVideo2Button').addEventListener('click', function () {
+    document.getElementById('video1Container').style.display = 'none';
+    document.getElementById('video2Container').style.display = 'block';
+    document.getElementById('nextVideo2Button').style.display = 'none';
+    document.getElementById('nextVideo3Button').style.display = 'block'; // 3-cü videoya keç düyməsini göstər
+});
+
+document.getElementById('clickButton2').addEventListener('click', function () {
+    clickCount2++;
+    document.getElementById('clickCounter2').textContent = clickCount2 + " klik edildi";
+});
+
+document.getElementById('nextVideo3Button').addEventListener('click', function () {
+    document.getElementById('video2Container').style.display = 'none';
+    document.getElementById('video3Container').style.display = 'block';
+    document.getElementById('nextVideo3Button').style.display = 'none';
+    document.getElementById('kaydetButton').style.display = 'block'; // Kaydet düyməsini göstər
+    document.getElementById('finishAsama2').style.display = 'block'; // Bitti düyməsini göstər
+    document.getElementById('finishAsama2').disabled = false;
+});
+
+document.getElementById('clickButton3').addEventListener('click', function () {
+    clickCount3++;
+    document.getElementById('clickCounter3').textContent = clickCount3 + " klik edildi";
+});
+
+// "Kaydet" düyməsinə klik edildikdə klik saylarını database-ə göndər
+document.getElementById('kaydetButton').addEventListener('click', function () {
+    fetch('/save-click-data/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            week: '{{ week }}',
+            module: 'Karmaşık Çalışma Belleği Modülü',
+            video_1_clicks: clickCount1,
+            video_2_clicks: clickCount2,
+            video_3_clicks: clickCount3
+        })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Klik sayları uğurla qeyd edildi.');
+        } else {
+            alert('Xəta baş verdi.');
+        }
+    }).catch(err => {
+        console.error('Xəta baş verdi:', err);
+    });
+});
+
+// "Bitti" düyməsinə klik edildikdə modulu tamamlayır
+document.getElementById('finishAsama2').addEventListener('click', function () {
+    fetch('/complete-module/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            week: '{{ week }}',
+            module: 'Karmaşık Çalışma Belleği Modülü'  // Karmaşık modulu tamamlanır
+        })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Modul bitdi və artıq yenidən açıla bilməz.');
+            window.location.href = '/calisma-bellegi/' + '{{ week }}';
+        }
+    }).catch(err => {
+        console.error('Xəta baş verdi:', err);
+    });
+});
+
+
+// "Bitti" düyməsinə klik edildikdə
+document.getElementById('finishAsama2').addEventListener('click', function () {
+    fetch('/complete-module/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            week: '{{ week }}',
+            module: 'Karmaşık Çalışma Belleği Modülü'  // Karmaşık modulu tamamlanır
+        })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Modul bitdi və artıq yenidən açıla bilməz.');
+            window.location.href = '/calisma-bellegi/' + '{{ week }}';
+        }
+    }).catch(err => {
+        console.error('Xəta baş verdi:', err);
+    });
+});
+
+</script>
+{% endblock %}

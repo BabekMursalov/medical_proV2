@@ -1,0 +1,143 @@
+{% extends "admin_navbar.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">İstifadəçi siyahısı</h3>
+
+    <!-- İstifadəçi axtarış inputu və axtar düyməsi -->
+    <div class="input-group mb-3" style="max-width: 300px;">
+        <input type="text" class="form-control" id="userSearch" placeholder="İstifadəçi adı üzrə axtar">
+        <button class="btn btn-primary" onclick="filterUsers()">Axtar</button>
+    </div>
+
+    <!-- İstifadəçilərin siyahısı -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>İstifadəçi Adı</th>
+                <th>Əməliyyatlar</th>
+            </tr>
+        </thead>
+        <tbody id="userTable">
+            <!-- İstifadəçilər burada dinamik olaraq yüklənəcək -->
+        </tbody>
+    </table>
+
+    <!-- Həftə və modul seçimi -->
+    <div id="weekModuleSelection" style="display: none;">
+        <h4 id="selectedUserName"></h4>
+
+        <!-- Həftə seçimi -->
+        <div class="mt-4" id="weekSelection" style="display: none;">
+            <label for="weekSelect">Həftə Seçimi</label>
+            <select id="weekSelect" class="form-select" onchange="loadModules()">
+                <option selected disabled>Həftə seçin</option>
+            </select>
+        </div>
+
+        <!-- Modul seçimi -->
+        <div class="mt-4" id="moduleSelection" style="display: none;">
+            <label for="moduleSelect">Modul Seçimi</label>
+            <select id="moduleSelect" class="form-select">
+                <option selected disabled>Modul seçin</option>
+            </select>
+        </div>
+
+        <!-- Göstər düyməsi -->
+        <div class="text-center mt-4">
+            <button class="btn btn-primary" onclick="showResultsInNewTab()">Göstər</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedUserId;
+
+// İstifadəçiləri backend-də axtarış sorğusu ilə filtrləmək
+function filterUsers() {
+    const searchValue = document.getElementById("userSearch").value;
+
+    fetch(`/search_users/?q=${searchValue}`)
+        .then(response => response.json())
+        .then(data => {
+            const userTable = document.getElementById("userTable");
+            userTable.innerHTML = '';
+
+            if (data.results.length > 0) {
+                data.results.forEach(user => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td><button class="btn btn-primary" onclick="loadWeeks(${user.id}, '${user.username}')">İstifadəçinin modul nəticələri</button></td>
+                    `;
+                    userTable.appendChild(row);
+                });
+            } else {
+                userTable.innerHTML = `<tr><td colspan="3" class="text-center text-muted">İstifadəçi tapılmadı</td></tr>`;
+            }
+        })
+        .catch(error => console.error("Xəta:", error));
+}
+
+// İstifadəçi üçün həftələri yüklə
+function loadWeeks(userId, username) {
+    selectedUserId = userId;
+    document.getElementById("selectedUserName").innerText = `İstifadəçi: ${username}`;
+    document.getElementById("weekModuleSelection").style.display = 'block';
+
+    fetch(`/module_results/user/${userId}/weeks/`)
+        .then(response => response.json())
+        .then(data => {
+            const weekSelect = document.getElementById("weekSelect");
+            weekSelect.innerHTML = '<option selected disabled>Həftə seçin</option>';
+            data.weeks.forEach(week => {
+                const option = document.createElement("option");
+                option.value = week.number;
+                option.textContent = `Həftə ${week.number}`;
+                weekSelect.appendChild(option);
+            });
+            document.getElementById("weekSelection").style.display = 'block';
+        });
+}
+
+// Həftə seçildikdə modulları yüklə
+// Həftə seçildikdə modulları yüklə
+function loadModules() {
+    const weekNumber = document.getElementById("weekSelect").value;
+    fetch(`/modules/${selectedUserId}/${weekNumber}/`)
+        .then(response => response.json())
+        .then(data => {
+            const moduleSelect = document.getElementById("moduleSelect");
+            moduleSelect.innerHTML = '<option selected disabled>Modul seçin</option>';
+            data.modules.forEach(module => {
+                const option = document.createElement("option");
+                option.value = module.id; // Sabit xəritədən ID
+                option.textContent = module.name;
+                moduleSelect.appendChild(option);
+            });
+            document.getElementById("moduleSelection").style.display = 'block';
+        });
+}
+
+
+
+// Göstər düyməsinə basıldıqda yeni tabda nəticələri açır
+function showResultsInNewTab() {
+    const weekNumber = document.getElementById("weekSelect").value;
+    const moduleId = document.getElementById("moduleSelect").value;
+
+    if (weekNumber && moduleId) {
+        const url = `/module_results/user/${selectedUserId}/week/${weekNumber}/module/${moduleId}/`;
+        window.open(url, '_blank'); // Yeni tabda açır
+    } else {
+        alert("Zəhmət olmasa, həftə və modulu seçin.");
+    }
+}
+
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">{{ user.username }} için Sözel Bellek Modülü</h3>
+
+    <input type="hidden" id="weekValue" value="{{ week }}">
+
+    <!-- Aşama düymələri -->
+    <div class="text-center mt-4">
+        <button id="phase1Button" class="btn btn-primary btn-lg m-2" onclick="startPhase(1)">1. Aşama</button>
+        <button id="phase2Button" class="btn btn-secondary btn-lg m-2" onclick="startPhase(2)" disabled>2. Aşama</button>
+    </div>
+
+    <!-- Tapşırıq təlimatı -->
+    <div id="taskInstruction" class="text-center mt-4">
+        <h4 id="instructionText">Görevi görmek için 1.Aşamanı seçiniz</h4>
+    </div>
+
+    <!-- Timer -->
+    <div class="text-center mt-4">
+        <h2 id="timerDisplay">00:00</h2>
+    </div>
+
+    <!-- Başla və Record düymələri -->
+    <div class="text-center mt-4">
+        <button id="startTaskButton" class="btn btn-success btn-lg m-2" onclick="startTimer()" disabled>Başla</button>
+        <button id="recordButton" class="btn btn-danger btn-lg m-2" onclick="startRecording()" disabled>Ses kaydı</button>
+        <button id="stopButton" class="btn btn-secondary btn-lg m-2" onclick="stopRecording()" disabled>Durdur</button>
+    </div>
+
+    <!-- Yazı statusu -->
+    <div class="text-center mt-4">
+        <p id="statusText"></p>
+    </div>
+
+    <!-- Bitti düyməsi -->
+    <div class="text-center mt-5">
+        <button id="finishButton" class="btn btn-success btn-lg" style="display: none;">Bitti</button>
+    </div>
+</div>
+
+<script>
+    const weekValue = document.getElementById('weekValue').value;
+    const instructionText = document.getElementById('instructionText');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const statusText = document.getElementById('statusText');
+    const startTaskButton = document.getElementById('startTaskButton');
+    const recordButton = document.getElementById('recordButton');
+    const stopButton = document.getElementById('stopButton');
+    const phase1Button = document.getElementById('phase1Button');
+    const phase2Button = document.getElementById('phase2Button');
+    const finishButton = document.getElementById('finishButton');
+
+    let currentPhase = 1;
+    let currentSubtask = 0;
+    let timer;
+    let timeRemaining;
+    let recordingChunks = [];
+    let mediaRecorder;
+    let isRecording = false;
+
+    const phases = [
+        [
+            { instruction: "Hedef Fonem: K harfıyla başlayan sözler", duration: 10 },
+            { instruction: "Hedef Fonem: S hərfıyla ilə başlayan sözler", duration: 10 }
+        ],
+        [
+            { instruction: "Hedef Kategori: İnsan isimleri", duration: 10 }
+        ]
+    ];
+
+    // Mərhələ başlatma funksiyası
+    function startPhase(phase) {
+        currentPhase = phase;
+        currentSubtask = 0;
+
+        if (phase === 1) {
+            instructionText.textContent = phases[0][currentSubtask].instruction;
+            startTaskButton.disabled = false;
+            phase1Button.classList.add('btn-primary');
+            phase1Button.classList.remove('btn-secondary');
+            phase2Button.classList.add('btn-secondary');
+            phase2Button.classList.remove('btn-primary');
+        } else if (phase === 2) {
+            instructionText.textContent = phases[1][0].instruction;
+            startTaskButton.disabled = false;
+            phase2Button.classList.add('btn-primary');
+            phase2Button.classList.remove('btn-secondary');
+            phase1Button.classList.add('btn-secondary');
+            phase1Button.classList.remove('btn-primary');
+        }
+
+        timerDisplay.textContent = "00:00";
+    }
+
+    // Başla düyməsi ilə timer başlatma
+    function startTimer() {
+        startTaskButton.disabled = true;
+        recordButton.disabled = false;
+        stopButton.disabled = false;
+        timeRemaining = phases[currentPhase - 1][currentSubtask].duration;
+        timerDisplay.textContent = formatTime(timeRemaining);
+        timer = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        timeRemaining--;
+        timerDisplay.textContent = formatTime(timeRemaining);
+
+        if (timeRemaining <= 0) {
+            clearInterval(timer);
+            statusText.textContent = "Aşama bitdi. 5 saniyə bekleyiniz...";
+            stopButton.disabled = true;
+            setTimeout(nextSubtaskOrPhase, 5000);
+        }
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes < 10 ? "0" : ""}${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+    }
+
+    function nextSubtaskOrPhase() {
+        currentSubtask++;
+
+        if (currentSubtask < phases[currentPhase - 1].length) {
+            instructionText.textContent = phases[currentPhase - 1][currentSubtask].instruction;
+            startTaskButton.disabled = false;
+            timerDisplay.textContent = "00:00";
+        } else {
+            if (currentPhase === 1) {
+                phase1Button.classList.add('btn-secondary');
+                phase1Button.disabled = true;
+                phase1Button.innerHTML = "1. Aşama <span style='color:red;'>Bu aşama bitmişdir</span>";
+                phase2Button.disabled = false;
+                phase2Button.classList.add('btn-primary');
+            } else {
+                phase2Button.classList.add('btn-secondary');
+                phase2Button.disabled = true;
+                phase2Button.innerHTML = "2. Aşama <span style='color:red;'>Bu aşama bitmişdir</span>";
+                finishButton.style.display = "block";
+                statusText.textContent = "";
+            }
+        }
+    }
+
+    function startRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordingChunks = [];
+            mediaRecorder.ondataavailable = event => recordingChunks.push(event.data);
+            recordButton.disabled = true;
+            statusText.textContent = "Səs qeydi başladı...";
+        });
+    }
+
+    function stopRecording() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        recordButton.disabled = false;
+        statusText.textContent = "Səs qeydi dayandırıldı.";
+
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(recordingChunks, { type: 'audio/wav' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob);
+            formData.append('week', weekValue);
+            formData.append('module_name', 'Sözel Bellek Modülü');  // Modulun adını buradan göndəririk
+            formData.append('phase', currentPhase); // Hər aşama üçün faza nömrəsi
+
+            fetch('/save-audio-verbal/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            }).then(response => response.json()).then(data => {
+                if (data.status === 'success') {
+                    statusText.textContent = "Səs qeydi saxlanıldı.";
+                } else {
+                    statusText.textContent = "Səs qeydi saxlanmadı.";
+                }
+            });
+        };
+    }
+}
+
+
+    finishButton.onclick = function () {
+        fetch('/complete-module/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ week: weekValue, module: 'İşitsel-sözel modulü' })
+        }).then(response => response.json()).then(data => {
+            if (data.status === 'success') {
+                alert('Modul tamamlandı.');
+                window.location.href = '/week-selection/';
+            }
+        });
+    };
+</script>
+{% endblock %}

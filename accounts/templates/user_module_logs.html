@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>{{ user.username }} - {{ week }}-ci Həftə - {{ module }} Modulu</h3>
+    <ul>
+        {% for log in logs %}
+            <li>{{ log.click_time }} saniyə</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

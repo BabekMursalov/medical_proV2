@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h3 class="week-header text-center">{{ week }}. Hafta</h3>  <!-- Dinamik həftə başlığı -->
+
+        <div class="row justify-content-center mt-4">
+            <!-- İşitsel Diqqət Modülü Kartı -->
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'attention_module' week %}">
+                    <div class="module-card p-4 shadow-sm text-center rounded bg-info text-white">
+                        <h5>İşitsel dikkat modulü</h5>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'verbal_memory_module' week %}">
+                    <div class="module-card p-4 shadow-sm text-center rounded bg-info text-white">
+                        <h5>İşitsel sıralama mödulü</h5>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'işitsel_sozel_module' week %}"> <!-- Modul üçün linki əlavə edirik -->
+                    <div class="module-card p-4 shadow-sm text-center rounded bg-info text-white">
+                        <h5>İşitsel-sözel mödulü</h5> <!-- Modul adı -->
+                    </div>
+                </a>
+            </div>
+            
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'calisma_bellegi' week %}"> <!-- Çalışma Belleği linki -->
+                    <div class="module-card p-4 shadow-sm text-center rounded bg-info text-white">
+                        <h5>Çalışma belleği modulü</h5>
+                    </div>
+                </a>
+            </div>            
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'işitsel_bellek' week %}"> <!-- Linki əlavə edirik -->
+                    <div class="module-card p-4 shadow-sm text-center rounded bg-info text-white">
+                        <h5>İşitsel-bellek modulü</h5>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'işitsel_zemin' week %}">
+                <div class="module-card p-4 shadow-sm text-center rounded bg-info text-white">
+                    <h5>Figür-zemin modulü</h5>
+                </div>
+            </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .week-header {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .module-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .module-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2);
+        }
+    </style>
+{% endblock %}

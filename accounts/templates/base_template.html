@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Açıq fon rəngi */
+        }
+        .navbar {
+            background-color: #007bff; /* Mavi navbar */
+        }
+        .navbar-brand {
+            color: #ffffff !important; /* Ağ mətn rəngi */
+        }
+        .nav-link {
+            color: #ffffff !important; /* Ağ mətn rəngi */
+            margin-right: 15px;
+        }
+        .nav-link:hover {
+            color: #28a745 !important; /* Hoverda yaşıl mətn rəngi */
+        }
+        .btn-primary {
+            background-color: #28a745; /* Yaşıl düymə */
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #007bff; /* Mavi hover düymə */
+        }
+        .navbar-nav {
+            margin-left: auto; /* Modulları sağ tərəfə yığmaq */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Həkim Paneli</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="#">Modul 1</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 2</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 3</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 4</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 5</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 6</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 7</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Modul 8</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Çıxış</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

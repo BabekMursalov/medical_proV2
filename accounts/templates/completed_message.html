@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="text-center p-4" style="background-color: #f8f9fa; border-radius: 10px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); max-width: 500px;">
+        <h2 class="text-success mb-3" style="font-weight: bold;">Modul Tamamlanmışdır</h2>
+        <p class="lead text-muted">{{ message }}</p>
+        
+        <div class="mt-4">
+            <a href="{% url 'week_modules' week=week %}" class="btn btn-primary btn-lg" style="padding: 10px 20px; border-radius: 5px;">
+                Modul seçimi səhifəsinə geri dön
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

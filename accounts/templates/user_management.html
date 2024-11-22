@@ -1,0 +1,249 @@
+{% extends "admin_navbar.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">İstifadəçilər</h3>
+    <div class="text-end mb-3">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">İstifadəçi Yarat</button>
+    </div>
+
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th class="text-start">ID</th>
+                <th class="text-center">İstifadəçi Adı</th>
+                <th class="text-end">Əməliyyatlar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr id="user-{{ user.id }}">
+                <td class="text-start">{{ user.id }}</td>
+                <td class="text-center">{{ user.username }}</td>
+                <td class="text-end">
+                    <button class="btn btn-primary me-2" onclick="openEditModal('{{ user.id }}', '{{ user.username }}')">Düzəliş et</button>
+                    <button class="btn btn-danger" onclick="confirmDelete('{{ user.id }}')">Sil</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<style>
+    /* Tablo başlığını daha dolğun göstərin */
+    th {
+        font-weight: bold;
+    }
+
+    /* Əməliyyat düymələri üçün margin */
+    .btn-primary, .btn-danger {
+        font-weight: bold;
+    }
+
+    /* Yaradın düyməsinin sağda olması üçün konteyner */
+    .text-end {
+        display: flex;
+        justify-content: flex-end;
+    }
+</style>
+
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel">Yeni İstifadəçi Yarat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label for="newUsername" class="form-label">Ad</label>
+                        <input type="text" class="form-control" id="newUsername" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Şifrə</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPasswordConfirm" class="form-label">Şifrə Təsdiqi</label>
+                        <input type="password" class="form-control" id="newPasswordConfirm" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bağla</button>
+                <button type="button" class="btn btn-success" onclick="createUser()">Yarat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">İstifadəçini Düzəliş Et</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label">Ad</label>
+                        <input type="text" class="form-control" id="editUsername" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">Yeni Şifrə (opsional)</label>
+                        <input type="password" class="form-control" id="editPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPasswordConfirm" class="form-label">Yeni Şifrə Təsdiqi</label>
+                        <input type="password" class="form-control" id="editPasswordConfirm">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bağla</button>
+                <button type="button" class="btn btn-primary" onclick="saveChanges()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">İstifadəçini Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu istifadəçini silmək istədiyinizə əminsinizmi?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Xeyr</button>
+                <button type="button" class="btn btn-danger" onclick="deleteUser()">Bəli, Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="userToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="toast-header">
+            <strong class="me-auto">Bildiriş</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            <!-- Toast mesajı burada göstəriləcək -->
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedUserId;
+
+function openEditModal(userId, username) {
+    selectedUserId = userId;
+    document.getElementById("editUsername").value = username;
+    document.getElementById("editPassword").value = '';
+    document.getElementById("editPasswordConfirm").value = '';
+    new bootstrap.Modal(document.getElementById("editUserModal")).show();
+}
+
+function confirmDelete(userId) {
+    selectedUserId = userId;
+    new bootstrap.Modal(document.getElementById("deleteUserModal")).show();
+}
+
+function createUser() {
+    const username = document.getElementById("newUsername").value;
+    const password = document.getElementById("newPassword").value;
+    const passwordConfirm = document.getElementById("newPasswordConfirm").value;
+
+    if (password !== passwordConfirm) {
+        showToast("Şifrə və təsdiqi uyğun deyil.", "bg-danger");
+        return;
+    }
+
+    fetch('/custom_admin/users/create/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ username: username, password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast("İstifadəçi yaradıldı!", "bg-success");
+            bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+        } else {
+            showToast("İstifadəçi yaradılmadı. Xəta baş verdi.", "bg-danger");
+        }
+    });
+}
+
+function saveChanges() {
+    const username = document.getElementById("editUsername").value;
+    const password = document.getElementById("editPassword").value;
+    const passwordConfirm = document.getElementById("editPasswordConfirm").value;
+
+    if (password && password !== passwordConfirm) {
+        showToast("Yeni şifrə və təsdiqi uyğun deyil.", "bg-danger");
+        return;
+    }
+
+    fetch(`/custom_admin/users/edit/${selectedUserId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ username: username, password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast("İstifadəçi yeniləndi!", "bg-success");
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+        } else {
+            showToast("İstifadəçi yenilənmədi. Xəta baş verdi.", "bg-danger");
+        }
+    });
+}
+
+function deleteUser() {
+    fetch(`/custom_admin/users/delete/${selectedUserId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast("İstifadəçi silindi!", "bg-success");
+            document.getElementById(`user-${selectedUserId}`).remove();
+            bootstrap.Modal.getInstance(document.getElementById('deleteUserModal')).hide();
+        } else {
+            showToast("İstifadəçi silinmədi. Xəta baş verdi.", "bg-danger");
+        }
+    });
+}
+
+function showToast(message, bgColor) {
+    const toastElement = document.getElementById("userToast");
+    const toastBody = document.getElementById("toastMessage");
+    toastBody.textContent = message;
+    toastElement.classList.remove("bg-success", "bg-danger");
+    toastElement.classList.add(bgColor);
+    new bootstrap.Toast(toastElement).show();
+}
+</script>
+{% endblock %}

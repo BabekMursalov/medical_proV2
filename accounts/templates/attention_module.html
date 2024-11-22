@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h3 class="text-center text-primary">{{ user.username }} için İşitsel Dikkat Modülü</h3>
+
+        <!-- Audio faylı -->
+        <div class="text-center mt-4">
+            {% if audio_urls %}
+                <div class="audio-player-wrapper mx-auto" style="max-width: 500px;">
+                    {% for audio_url in audio_urls %}
+                        <audio id="audio{{ forloop.counter }}" class="audio-player" controls>
+                            <source src="{{ audio_url }}" type="audio/mpeg">
+                            Səs yazısı cihazınız tərəfindən dəstəklənmir.
+                        </audio>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-danger">Səs yazısı mövcud deyil.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Tıkla düyməsi -->
+        <div class="text-center mt-4">
+            <button id="clickButton" class="btn btn-primary btn-lg shadow-lg" style="border-radius: 50px; padding: 15px 40px;">Tıkla</button>
+        </div>
+
+        <!-- Klik zamanlarını göstərmək üçün -->
+        <div class="mt-5 p-3 bg-light rounded shadow-sm">
+            <h5 class="text-secondary">Tıklama zamanları:</h5>
+            <ul id="clickTimes" class="list-unstyled"></ul>
+        </div>
+
+        <!-- Bitir düyməsi -->
+        <div class="text-center mt-5">
+            <button id="finishButton" class="btn btn-danger btn-lg shadow-lg" style="padding: 15px 40px;">Bitir</button>
+        </div>
+    </div>
+
+    <style>
+        /* Başlıq üçün daha böyük font və parlaq rəng */
+        h3 {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* Audio pleyerinə uyumlu dizayn */
+        .audio-player-wrapper {
+            padding: 15px;
+            border: 2px solid #007bff;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+        }
+
+        /* Tıkla düyməsi üçün hover və vurğulu effekt */
+        #clickButton {
+            background-color: #17a2b8;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        #clickButton:hover {
+            background-color: #138496;
+            transform: scale(1.05); /* Düyməni hover zamanı yüngül böyütmə effekti */
+        }
+
+        /* Klik vaxtlarının siyahısı üçün tərtibat */
+        ul#clickTimes {
+            font-size: 1.1rem;
+            color: #343a40;
+        }
+
+        /* Hər klik üçün vurğulu vaxt görünüşü */
+        ul#clickTimes li {
+            background-color: #e9ecef;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Ana konteyner dizaynı */
+        .container {
+            max-width: 600px;
+        }
+    </style>
+
+    <script>
+        let clickData = []; // Klik məlumatlarını saxlamaq üçün massiv
+        const audioElement = document.querySelector('.audio-player'); // İlk audio faylını seçirik
+        const clickButton = document.getElementById('clickButton');
+        const clickTimesList = document.getElementById('clickTimes');
+        const finishButton = document.getElementById('finishButton');
+
+        // Klik zamanı qeydiyyat funksiyası
+        function recordClick(time) {
+            clickData.push({
+                click_time: time
+            });
+            
+            // Ekranda göstərmək üçün
+            const listItem = document.createElement('li');
+            listItem.textContent = `${time.toFixed(2)} saniyə`;
+            clickTimesList.appendChild(listItem);
+        }
+
+        // Tıkla düyməsinə klik edilən vaxtı qeyd edirik
+        clickButton.addEventListener('click', () => {
+            const currentTime = audioElement.currentTime;
+            recordClick(currentTime);
+        });
+
+        // Bitir düyməsinə klik edildikdə bütün məlumatları serverə göndəririk
+        finishButton.addEventListener('click', () => {
+            fetch('/complete-module/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    week: '{{ week }}',
+                    module: 'İşitsel Dikkat Modülü',
+                    click_data: clickData // Bütün klik məlumatlarını əlavə edirik
+                })
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Modul bitdi və artıq yenidən açıla bilməz.');
+                    window.location.href = '/week-selection/';
+                }
+            }).catch(error => {
+                console.error('Xəta baş verdi:', error);
+            });
+        });
+    </script>
+{% endblock %}

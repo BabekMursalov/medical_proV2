@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>{{ user.username }} - Həftələr</h3>
+    <ul>
+        {% for week in weeks %}
+            <li><a href="{% url 'user_week_modules' user.id week.week %}">{{ week.week }}-ci Həftə</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

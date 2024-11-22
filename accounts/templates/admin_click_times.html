@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h3 class="text-center">{{ user.username }} üçün 1-ci Həftə - İşitsel Dikkat Modülü</h3>
+
+        <div class="mt-4">
+            <h5>İstifadəçinin Klik Zamanları:</h5>
+            <ul>
+                {% for record in click_records %}
+                    <li>{{ record.click_time }} saniyə</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

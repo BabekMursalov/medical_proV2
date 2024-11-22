@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h3 class="text-center text-primary">{{ user.username }} kullanıcısının Sözel Bellek Modulü</h3>
+
+        <!-- Video Faylları -->
+        <div class="text-center mt-4">
+            {% if video_urls %}
+                {% for video_url in video_urls %}
+                    <video controls width="300">
+                        <source src="{{ video_url }}" type="video/mp4">
+                        Video cihazınız tərəfindən dəstəklənmir.
+                    </video>
+                {% endfor %}
+            {% else %}
+                <p class="text-danger">Video mövcud deyil.</p>
+            {% endif %}
+        </div>
+
+        <!-- İki düymə -->
+        <div class="text-center mt-4">
+            <button id="button1" class="btn btn-primary btn-lg shadow-lg m-3" style="padding: 15px 40px;">KALIN KISA</button>
+            <button id="button2" class="btn btn-secondary btn-lg shadow-lg m-3" style="padding: 15px 40px;">UZUN İNCE</button>
+        </div>
+
+        <!-- Klik zamanlarını göstərmək üçün -->
+        <div class="mt-5 p-3 bg-light rounded shadow-sm">
+            <h5 class="text-secondary">Tıklama saniyeleri:</h5>
+            <ul id="clickTimes"></ul>
+        </div>
+
+        <!-- Bitir düyməsi -->
+        <div class="text-center mt-5">
+            <button id="finishButton" class="btn btn-danger btn-lg shadow-lg" style="padding: 15px 40px;">Bitir</button>
+        </div>
+    </div>
+
+    <script>
+        let clickData = []; // Bütün klik məlumatlarını müvəqqəti saxlamaq üçün massiv
+        const videoElement = document.querySelector('video'); // İlk videonu seçirik
+        const clickTimesList = document.getElementById('clickTimes');
+        const finishButton = document.getElementById('finishButton');
+    
+        // Klik məlumatlarını müvəqqəti masssivdə saxlayırıq
+        function recordClick(time, button) {
+            clickData.push({
+                click_time: time,
+                button: button
+            });
+            
+            // Hər klik zamanı ekranda göstərmək üçün
+            const listItem = document.createElement('li');
+            listItem.textContent = `${time.toFixed(2)} saniyə (${button})`;
+            clickTimesList.appendChild(listItem);
+        }
+    
+        // "KALIN İNCE" düyməsi üçün klik zamanı qeydiyyat
+        document.getElementById('button1').addEventListener('click', () => {
+            const currentTime = videoElement.currentTime;
+            recordClick(currentTime, 'KALIN KISA');
+        });
+    
+        // "UZUN KISA" düyməsi üçün klik zamanı qeydiyyat
+        document.getElementById('button2').addEventListener('click', () => {
+            const currentTime = videoElement.currentTime;
+            recordClick(currentTime, 'UZUN İNCE');
+        });
+    
+        // Bitir düyməsinə klik edildikdə bütün məlumatları serverə göndəririk
+        finishButton.addEventListener('click', () => {
+            fetch('/complete-module/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    week: '{{ week }}',
+                    module: 'İşitsel sıralama modulü',
+                    click_data: clickData // Bütün klik məlumatlarını əlavə edirik
+                })
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Modul bitdi və artıq yenidən açıla bilməz.');
+                    window.location.href = '/week-selection/';
+                }
+            }).catch(error => {
+                console.error('Xəta baş verdi:', error);
+            });
+        });
+    </script>
+    
+{% endblock %}
