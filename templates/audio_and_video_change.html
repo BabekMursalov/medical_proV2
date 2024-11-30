@@ -2,17 +2,17 @@
 {% load custom_tags %}
 {% block content %}
 <div class="container mt-5">
-    <h3 class="text-center">Audio və Video Fayllarının Dəyişdirilməsi</h3>
+    <h3 class="text-center">Ses ve video dosyalarının değiştirilmesi</h3>
 
     <form method="POST" enctype="multipart/form-data" class="mt-4">
         {% csrf_token %}
 
         <div class="form-group mb-3">
-            <label for="week">Həftə Seçimi:</label>
+            <label for="week">Hafta seçimi:</label>
             <select name="week" id="week" class="form-select" required>
-                <option value="" disabled selected>Həftə seçin</option>
+                <option value="" disabled selected>Hafta seçin</option>
                 {% for i in 8|get_range %}
-                    <option value="{{ i }}">Həftə {{ i }}</option>
+                    <option value="{{ i }}">Hafta {{ i }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -20,12 +20,12 @@
         <div class="form-group mb-3">
             <label for="module_name">Modul Seçimi:</label>
             <select name="module_name" id="module_name" class="form-select" onchange="updateFileFields()" required>
-                <option value="" disabled selected>Modul seçin</option>
+                <option value="" disabled selected>Modül seçin</option>
                 <option value="İşitsel dikkat modülü">İşitsel dikkat modülü</option>
                 <option value="İşitsel sıralama modulü">İşitsel sıralama modulü</option>
-                <option value="İşitsel-sözel modulü">İşitsel-sözel mödulü</option>
+                <option value="İşitsel-sözel modulü">İşitsel-Sözel Kısa Süreli Bellek Modülü</option>
                 <option value="Karmaşık Çalışma Belleği Modülü">Karmaşık Çalışma Belleği Modülü</option>
-                <option value="İşitsel-bellek modülü">İşitsel-bellek modülü</option>
+                <option value="İşitsel-bellek modülü">Sözel Bellek modülü</option>
                 <option value="Figür-zemin modülü">Figür-zemin modülü</option>
 
             </select>
@@ -41,7 +41,7 @@
             <div id="videoFileInputs"></div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Yadda saxla</button>
+        <button type="submit" class="btn btn-primary">Kaydet</button>
     </form>
 </div>
 
@@ -62,7 +62,7 @@ function updateFileFields() {
 } else if (module === 'İşitsel sıralama modulü') {
     audioFilesContainer.style.display = 'none';
     videoFilesContainer.style.display = 'block'; // Yalnız video fayllarını göstərir
-    createVideoFileInputs(5); // 4 video faylı üçün
+    createVideoFileInputs(4); // 4 video faylı üçün
 } else if (module === 'İşitsel-bellek modülü') {
     audioFilesContainer.style.display = 'block';
     videoFilesContainer.style.display = 'none';
