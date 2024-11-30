@@ -1,4 +1,4 @@
-{% extends "admin_navbar.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-5">
@@ -6,20 +6,20 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header text-center">
-                    <h4>Admin Giriş</h4>
+                    <h4>Admin giriş</h4>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         <div class="form-group mb-3">
-                            <label for="username">İstifadəçi adı</label>
-                            <input type="text" name="username" class="form-control" required>
+                            <label for="username">Kullanıcı adı</label>
+                            <input type="text" name="username" placeholder="kullanıcı adı" class="form-control" required>
                         </div>
                         <div class="form-group mb-3">
-                            <label for="password">Şifrə</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <label for="password">Şifre</label>
+                            <input type="password" name="password" placeholder="şifre" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Giriş</button>
+                        <button type="submit" class="btn btn-primary w-100">Giriş yap</button>
                     </form>
                     {% if messages %}
                         <div class="alert alert-danger mt-3">
