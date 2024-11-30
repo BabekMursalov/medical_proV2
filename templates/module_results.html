@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h3 class="text-center">İstifadəçi siyahısı</h3>
+    <h3 class="text-center">Kullanıcı listesi</h3>
 
     <!-- İstifadəçi axtarış inputu və axtar düyməsi -->
     <div class="input-group mb-3" style="max-width: 300px;">
-        <input type="text" class="form-control" id="userSearch" placeholder="İstifadəçi adı üzrə axtar">
-        <button class="btn btn-primary" onclick="filterUsers()">Axtar</button>
+        <input type="text" class="form-control" id="userSearch" placeholder="Kullanıcı adına göre ara">
+        <button class="btn btn-primary" onclick="filterUsers()">Ara</button>
     </div>
 
     <!-- İstifadəçilərin siyahısı -->
@@ -15,8 +15,8 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>İstifadəçi Adı</th>
-                <th>Əməliyyatlar</th>
+                <th>Kullanıcı adı</th>
+                <th>Hareketler</th>
             </tr>
         </thead>
         <tbody id="userTable">
@@ -30,23 +30,23 @@
 
         <!-- Həftə seçimi -->
         <div class="mt-4" id="weekSelection" style="display: none;">
-            <label for="weekSelect">Həftə Seçimi</label>
+            <label for="weekSelect">Hafta seçimi</label>
             <select id="weekSelect" class="form-select" onchange="loadModules()">
-                <option selected disabled>Həftə seçin</option>
+                <option selected disabled>Hafta seçin</option>
             </select>
         </div>
 
         <!-- Modul seçimi -->
         <div class="mt-4" id="moduleSelection" style="display: none;">
-            <label for="moduleSelect">Modul Seçimi</label>
+            <label for="moduleSelect">Modül Seçimi</label>
             <select id="moduleSelect" class="form-select">
-                <option selected disabled>Modul seçin</option>
+                <option selected disabled>Modül seçin</option>
             </select>
         </div>
 
         <!-- Göstər düyməsi -->
         <div class="text-center mt-4">
-            <button class="btn btn-primary" onclick="showResultsInNewTab()">Göstər</button>
+            <button class="btn btn-primary" onclick="showResultsInNewTab()">Göster</button>
         </div>
     </div>
 </div>
@@ -70,7 +70,7 @@ function filterUsers() {
                     row.innerHTML = `
                         <td>${user.id}</td>
                         <td>${user.username}</td>
-                        <td><button class="btn btn-primary" onclick="loadWeeks(${user.id}, '${user.username}')">İstifadəçinin modul nəticələri</button></td>
+                        <td><button class="btn btn-primary" onclick="loadWeeks(${user.id}, '${user.username}')">Kullanıcının modül sonuçları</button></td>
                     `;
                     userTable.appendChild(row);
                 });
@@ -84,18 +84,18 @@ function filterUsers() {
 // İstifadəçi üçün həftələri yüklə
 function loadWeeks(userId, username) {
     selectedUserId = userId;
-    document.getElementById("selectedUserName").innerText = `İstifadəçi: ${username}`;
+    document.getElementById("selectedUserName").innerText = `Kullanıcı: ${username}`;
     document.getElementById("weekModuleSelection").style.display = 'block';
 
     fetch(`/module_results/user/${userId}/weeks/`)
         .then(response => response.json())
         .then(data => {
             const weekSelect = document.getElementById("weekSelect");
-            weekSelect.innerHTML = '<option selected disabled>Həftə seçin</option>';
+            weekSelect.innerHTML = '<option selected disabled>Hafta seç</option>';
             data.weeks.forEach(week => {
                 const option = document.createElement("option");
                 option.value = week.number;
-                option.textContent = `Həftə ${week.number}`;
+                option.textContent = `Hafta ${week.number}`;
                 weekSelect.appendChild(option);
             });
             document.getElementById("weekSelection").style.display = 'block';
@@ -110,7 +110,7 @@ function loadModules() {
         .then(response => response.json())
         .then(data => {
             const moduleSelect = document.getElementById("moduleSelect");
-            moduleSelect.innerHTML = '<option selected disabled>Modul seçin</option>';
+            moduleSelect.innerHTML = '<option selected disabled>Modül seçin</option>';
             data.modules.forEach(module => {
                 const option = document.createElement("option");
                 option.value = module.id; // Sabit xəritədən ID
@@ -132,7 +132,7 @@ function showResultsInNewTab() {
         const url = `/module_results/user/${selectedUserId}/week/${weekNumber}/module/${moduleId}/`;
         window.open(url, '_blank'); // Yeni tabda açır
     } else {
-        alert("Zəhmət olmasa, həftə və modulu seçin.");
+        alert("Lütfen hafta ve modül seçin");
     }
 }
 
