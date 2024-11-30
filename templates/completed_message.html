@@ -1,14 +1,27 @@
+
+
+
+
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="container mt-5 d-flex justify-content-center align-items-center" style="min-height: 70vh;">
-    <div class="text-center p-4" style="background-color: #f8f9fa; border-radius: 10px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); max-width: 500px;">
-        <h2 class="text-success mb-3" style="font-weight: bold;">Modul Tamamlanmışdır</h2>
-        <p class="lead text-muted">{{ message }}</p>
+    <div class="text-center p-5" style="background: linear-gradient(135deg, #e9ecef, #f8f9fa); border-radius: 15px; box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15); max-width: 600px;">
+        <!-- İkon əlavə -->
+        <div class="mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" fill="currentColor" class="text-success bi bi-check-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8a8 8 0 1 1-16 0 8 8 0 0 1 16 0zM12.97 6.03a.75.75 0 0 0-1.06-1.06L7.477 9.414 5.384 7.323a.75.75 0 1 0-1.06 1.06l2.646 2.647a.75.75 0 0 0 1.06 0l5.646-5.647z"/>
+            </svg>
+        </div>
+
+        <!-- Başlıq və Mesaj -->
+        <h2 class="text-success mb-3" style="font-weight: bold; font-size: 2rem;">Modül Tamamlanmıştır</h2>
+        <p class="lead text-secondary" style="font-size: 1.2rem; line-height: 1.5;">{{ message }}</p>
         
+        <!-- Təklif düyməsi -->
         <div class="mt-4">
-            <a href="{% url 'week_modules' week=week %}" class="btn btn-primary btn-lg" style="padding: 10px 20px; border-radius: 5px;">
-                Modul seçimi səhifəsinə geri dön
+            <a href="{% url 'week_modules' week=week %}" class="btn btn-primary btn-lg" style="padding: 12px 30px; border-radius: 10px; font-size: 1rem; font-weight: 600;">
+                Modül seçimi sayfasına geri dön
             </a>
         </div>
     </div>

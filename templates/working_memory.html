@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-    <h3 class="text-center">ÇALIŞMA BELLEĞİ</h3>
+    <h3 class="text-center text-primary">{{user.username}} için Çalışma Belleği</h3>
     <div class="row justify-content-center mt-4">
         <div class="col-md-6 mb-4 text-center">
             {% if basit_completed %}
                 <button class="btn btn-secondary btn-lg btn-block" disabled>BASİT ÇALIŞMA BELLEĞİ</button>
-                <p class="text-center text-danger mt-3">Bu modül tamamlanmıştır, yeniden kullanılamaz</p>
+                <p class="text-center text-danger mt-3">Bu Modül tamamlandı</p>
             {% else %}
                 <a href="{% url 'basit_calisma' week=week %}" class="btn btn-primary btn-lg btn-block">BASİT ÇALIŞMA BELLEĞİ</a>
             {% endif %}
@@ -16,7 +16,7 @@
                 <button class="btn btn-secondary btn-lg btn-block" disabled>KARMAŞIK ÇALIŞMA BELLEĞİ</button>
             {% elif karmaşik_completed %}
                 <button class="btn btn-secondary btn-lg btn-block" disabled>KARMAŞIK ÇALIŞMA BELLEĞİ</button>
-                <p class="text-center text-danger mt-3">Bu modül tamamlanmıştır, yeniden kullanılamaz</p>
+                <p class="text-center text-danger mt-3">Bu Modül tamamlandı</p>
             {% else %}
                 <a href="{% url 'karmasik_calisma' week=week %}" class="btn btn-primary btn-lg btn-block">KARMAŞIK ÇALIŞMA BELLEĞİ</a>
             {% endif %}

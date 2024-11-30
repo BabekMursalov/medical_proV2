@@ -1,95 +1,129 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h3 class="text-center text-primary">{{ user.username }} kullanıcısının Sözel Bellek Modulü</h3>
-
-        <!-- Video Faylları -->
-        <div class="text-center mt-4">
-            {% if video_urls %}
-                {% for video_url in video_urls %}
-                    <video controls width="300">
-                        <source src="{{ video_url }}" type="video/mp4">
-                        Video cihazınız tərəfindən dəstəklənmir.
-                    </video>
-                {% endfor %}
-            {% else %}
-                <p class="text-danger">Video mövcud deyil.</p>
-            {% endif %}
-        </div>
-
-        <!-- İki düymə -->
-        <div class="text-center mt-4">
-            <button id="button1" class="btn btn-primary btn-lg shadow-lg m-3" style="padding: 15px 40px;">KALIN KISA</button>
-            <button id="button2" class="btn btn-secondary btn-lg shadow-lg m-3" style="padding: 15px 40px;">UZUN İNCE</button>
-        </div>
-
-        <!-- Klik zamanlarını göstərmək üçün -->
-        <div class="mt-5 p-3 bg-light rounded shadow-sm">
-            <h5 class="text-secondary">Tıklama saniyeleri:</h5>
-            <ul id="clickTimes"></ul>
-        </div>
-
-        <!-- Bitir düyməsi -->
-        <div class="text-center mt-5">
-            <button id="finishButton" class="btn btn-danger btn-lg shadow-lg" style="padding: 15px 40px;">Bitir</button>
-        </div>
+<div class="container mt-5">
+    <h3 class="text-center text-primary">{{ user.username }} için İşitsel Sıralama Modülü</h3>
+    <div>
+        <h4>‘Daha ince ve daha kalın işitsel uyaranlardan oluşan bir uyaran dizisi duyacaksınız. Uyaranları kalın veya ince şeklinde sıralayın.’</h4>
     </div>
 
-    <script>
-        let clickData = []; // Bütün klik məlumatlarını müvəqqəti saxlamaq üçün massiv
-        const videoElement = document.querySelector('video'); // İlk videonu seçirik
-        const clickTimesList = document.getElementById('clickTimes');
-        const finishButton = document.getElementById('finishButton');
-    
-        // Klik məlumatlarını müvəqqəti masssivdə saxlayırıq
-        function recordClick(time, button) {
-            clickData.push({
-                click_time: time,
-                button: button
-            });
-            
-            // Hər klik zamanı ekranda göstərmək üçün
-            const listItem = document.createElement('li');
-            listItem.textContent = `${time.toFixed(2)} saniyə (${button})`;
-            clickTimesList.appendChild(listItem);
-        }
-    
-        // "KALIN İNCE" düyməsi üçün klik zamanı qeydiyyat
-        document.getElementById('button1').addEventListener('click', () => {
-            const currentTime = videoElement.currentTime;
-            recordClick(currentTime, 'KALIN KISA');
+    <!-- Video Oynatma -->
+    <div class="text-center mt-4">
+        {% if video_urls %}
+            <video id="videoPlayer" controls width="300">
+                <source src="{{ video_urls.0 }}" type="video/mp4">
+                Video cihazınız tərəfindən dəstəklənmir.
+            </video>
+        {% else %}
+            <p class="text-danger">Videolar mövcud deyil.</p>
+        {% endif %}
+    </div>
+
+    <!-- Növbəti Video Düyməsi -->
+    <div class="text-center mt-4">
+        <button id="nextVideoButton" class="btn btn-success btn-lg m-3" style="display: none;">Diğer video</button>
+    </div>
+
+    <!-- İki Düymə -->
+    <div class="text-center mt-4">
+        <button id="button1" class="btn btn-primary btn-lg shadow-lg m-3" style="padding: 15px 40px;">KALIN / KISA</button>
+        <button id="button2" class="btn btn-secondary btn-lg shadow-lg m-3" style="padding: 15px 40px;">İNCE / UZUN</button>
+    </div>
+
+    <!-- Klik Zamanlarını Göstərmək -->
+    <div class="mt-5 p-3 bg-light rounded shadow-sm">
+        <h5 class="text-secondary">Tıklama saniyeleri:</h5>
+        <ul id="clickTimes"></ul>
+    </div>
+
+    <!-- Bitir Düyməsi -->
+    <div class="text-center mt-5">
+        <button id="finishButton" class="btn btn-danger btn-lg shadow-lg" style="padding: 15px 40px;">Bitir</button>
+    </div>
+</div>
+
+<script>
+let clickData = []; // Bütün klik məlumatlarını müvəqqəti saxlamaq üçün massiv
+const videoUrls = {{ video_urls|safe }}; // Backend-dən gələn video URL-lər
+let currentVideoIndex = 0; // Hal-hazırda oynayan videonun indeksi
+const videoElement = document.getElementById('videoPlayer');
+const clickTimesList = document.getElementById('clickTimes');
+const nextVideoButton = document.getElementById('nextVideoButton');
+const finishButton = document.getElementById('finishButton');
+
+// Klik məlumatlarını müvəqqəti massivdə saxlayırıq
+function recordClick(time, button) {
+    clickData.push({
+        click_time: time.toFixed(2), // Vaxtı yuvarlaqlaşdırırıq
+        button: button, // Düymənin adı
+        video_index: currentVideoIndex + 1 // Video indeksi (1-dən başlayır)
+    });
+
+    // Hər klik zamanı ekranda göstərmək üçün
+    const listItem = document.createElement('li');
+    listItem.textContent = `${time.toFixed(2)} saniyə (${button}) (${currentVideoIndex + 1}. video)`; // Video indeksi əlavə olunur
+    clickTimesList.appendChild(listItem);
+}
+
+// "KALIN / KISA" düyməsi üçün klik zamanı qeydiyyat
+document.getElementById('button1').addEventListener('click', () => {
+    const currentTime = videoElement.currentTime;
+    recordClick(currentTime, 'KALIN / KISA');
+});
+
+// "İNCE / UZUN" düyməsi üçün klik zamanı qeydiyyat
+document.getElementById('button2').addEventListener('click', () => {
+    const currentTime = videoElement.currentTime;
+    recordClick(currentTime, 'İNCE / UZUN');
+});
+
+// Video bitdikdə növbəti videoya keç düyməsi
+videoElement.addEventListener('ended', () => {
+    if (currentVideoIndex < videoUrls.length - 1) {
+        nextVideoButton.style.display = 'block';
+    }
+
+    // Əgər hal-hazırda 4-cü video (currentVideoIndex === 3) bitibsə, "Bitir" düyməsini göstər
+    if (currentVideoIndex === 3) {
+        finishButton.style.display = 'block'; // Yalnız 4-cü videodan sonra görünür
+        nextVideoButton.style.display = 'none'; // "Növbəti Video" düyməsini gizləyir
+    }
+});
+
+// Növbəti video düyməsinə klik edildikdə
+nextVideoButton.addEventListener('click', () => {
+    currentVideoIndex++;
+    videoElement.src = videoUrls[currentVideoIndex];
+    videoElement.load(); // Videonu yenidən yükləyir
+    videoElement.play(); // Yeni videonu oynadır
+    nextVideoButton.style.display = 'none'; // Düyməni gizlədir
+});
+
+// Bitir düyməsinə klik edildikdə bütün məlumatları serverə göndəririk
+finishButton.addEventListener('click', () => {
+    fetch('/complete-module/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            week: '{{ week }}',
+            module: 'İşitsel sıralama modulü',
+            click_data: clickData // Bütün klik məlumatlarını əlavə edirik
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Modul bitdi və artıq yenidən açıla bilməz.');
+                window.location.href = '/week-selection/';
+            }
+        })
+        .catch(error => {
+            console.error('Xəta baş verdi:', error);
         });
-    
-        // "UZUN KISA" düyməsi üçün klik zamanı qeydiyyat
-        document.getElementById('button2').addEventListener('click', () => {
-            const currentTime = videoElement.currentTime;
-            recordClick(currentTime, 'UZUN İNCE');
-        });
-    
-        // Bitir düyməsinə klik edildikdə bütün məlumatları serverə göndəririk
-        finishButton.addEventListener('click', () => {
-            fetch('/complete-module/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    week: '{{ week }}',
-                    module: 'İşitsel sıralama modulü',
-                    click_data: clickData // Bütün klik məlumatlarını əlavə edirik
-                })
-            }).then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('Modul bitdi və artıq yenidən açıla bilməz.');
-                    window.location.href = '/week-selection/';
-                }
-            }).catch(error => {
-                console.error('Xəta baş verdi:', error);
-            });
-        });
-    </script>
-    
+});
+
+</script>
 {% endblock %}

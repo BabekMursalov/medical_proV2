@@ -2,19 +2,19 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h3 class="text-center">{{ user.username }} için Sözel Bellek Modülü</h3>
+    <h3 class="text-center text-primary">{{ user.username }} için İşitsel-Sözel Kısa Süreli Bellek Modülü </h3>
 
     <input type="hidden" id="weekValue" value="{{ week }}">
 
     <!-- Aşama düymələri -->
     <div class="text-center mt-4">
-        <button id="phase1Button" class="btn btn-primary btn-lg m-2" onclick="startPhase(1)">1. Aşama</button>
-        <button id="phase2Button" class="btn btn-secondary btn-lg m-2" onclick="startPhase(2)" disabled>2. Aşama</button>
+        <button id="phase1Button" class="btn btn-primary btn-lg m-2" onclick="startPhase(1)">Fonemik Akıcılık Görevi </button>
+        <button id="phase2Button" class="btn btn-secondary btn-lg m-2" onclick="startPhase(2)" disabled>Semantik Akıcılık Görevi  </button>
     </div>
 
     <!-- Tapşırıq təlimatı -->
     <div id="taskInstruction" class="text-center mt-4">
-        <h4 id="instructionText">Görevi görmek için 1.Aşamanı seçiniz</h4>
+        <h4 id="instructionText" class="text-danger">Görevi görmek için Fonemik Akıcılık Görevi butonuna tıklayınız</h4>
     </div>
 
     <!-- Timer -->
@@ -62,15 +62,14 @@
 
     const phases = [
         [
-            { instruction: "Hedef Fonem: K harfıyla başlayan sözler", duration: 10 },
-            { instruction: "Hedef Fonem: S hərfıyla ilə başlayan sözler", duration: 10 }
+            { instruction: "Hedef Fonem: S harfiyle başlayan sözler", duration: 60 },
+            { instruction: "Hedef Fonem: K harfiyle ilə başlayan sözler", duration: 60 }
         ],
         [
-            { instruction: "Hedef Kategori: İnsan isimleri", duration: 10 }
+            { instruction: "‘Bir dakika içinde ekrandaki kategoriye ait kelimeleri söyleyiniz. Sesiniz bu aşamada kaydedilecektir. Hedef kategori: İnsan isimleri’", duration: 60 }
         ]
     ];
 
-    // Mərhələ başlatma funksiyası
     function startPhase(phase) {
         currentPhase = phase;
         currentSubtask = 0;
@@ -94,7 +93,6 @@
         timerDisplay.textContent = "00:00";
     }
 
-    // Başla düyməsi ilə timer başlatma
     function startTimer() {
         startTaskButton.disabled = true;
         recordButton.disabled = false;
@@ -105,16 +103,25 @@
     }
 
     function updateTimer() {
-        timeRemaining--;
-        timerDisplay.textContent = formatTime(timeRemaining);
+    timeRemaining--;
+    timerDisplay.textContent = formatTime(timeRemaining);
 
-        if (timeRemaining <= 0) {
-            clearInterval(timer);
-            statusText.textContent = "Aşama bitdi. 5 saniyə bekleyiniz...";
-            stopButton.disabled = true;
-            setTimeout(nextSubtaskOrPhase, 5000);
+    if (timeRemaining <= 0) {
+        clearInterval(timer);
+        if (isRecording) {
+            stopRecording(true);
+        }
+
+        if (currentPhase === 1 && currentSubtask === phases[0].length - 1) {
+            // Yalnız bütün subtasklar tamamlandıqda bu mesaj göstərilir
+            statusText.textContent = "1. aşama bitti. 30 saniye sonra 2. aşama başlayacaktır";
+            setTimeout(() => startPhase(2), 30000);
+        } else {
+            nextSubtaskOrPhase();
         }
     }
+}
+
 
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
@@ -131,17 +138,12 @@
             timerDisplay.textContent = "00:00";
         } else {
             if (currentPhase === 1) {
-                phase1Button.classList.add('btn-secondary');
                 phase1Button.disabled = true;
-                phase1Button.innerHTML = "1. Aşama <span style='color:red;'>Bu aşama bitmişdir</span>";
+                phase1Button.innerHTML = "1. Aşama Tamamlandı";
                 phase2Button.disabled = false;
-                phase2Button.classList.add('btn-primary');
             } else {
-                phase2Button.classList.add('btn-secondary');
-                phase2Button.disabled = true;
-                phase2Button.innerHTML = "2. Aşama <span style='color:red;'>Bu aşama bitmişdir</span>";
                 finishButton.style.display = "block";
-                statusText.textContent = "";
+                statusText.textContent = "2. Aşama bitmişdir.";
             }
         }
     }
@@ -154,40 +156,39 @@
             recordingChunks = [];
             mediaRecorder.ondataavailable = event => recordingChunks.push(event.data);
             recordButton.disabled = true;
-            statusText.textContent = "Səs qeydi başladı...";
+            statusText.textContent = "Ses kaydı başladı";
         });
     }
 
-    function stopRecording() {
-    if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        isRecording = false;
-        recordButton.disabled = false;
-        statusText.textContent = "Səs qeydi dayandırıldı.";
+    function stopRecording(autoStop = false) {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            recordButton.disabled = false;
+            statusText.textContent = autoStop ? "Ses kaydı otomatik kaydedildi." : "Ses kaydı bitti";
 
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(recordingChunks, { type: 'audio/wav' });
-            const formData = new FormData();
-            formData.append('audio', audioBlob);
-            formData.append('week', weekValue);
-            formData.append('module_name', 'Sözel Bellek Modülü');  // Modulun adını buradan göndəririk
-            formData.append('phase', currentPhase); // Hər aşama üçün faza nömrəsi
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(recordingChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+                formData.append('week', weekValue);
+                formData.append('module_name', 'Sözel Bellek Modülü');
+                formData.append('phase', currentPhase);
 
-            fetch('/save-audio-verbal/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                body: formData
-            }).then(response => response.json()).then(data => {
-                if (data.status === 'success') {
-                    statusText.textContent = "Səs qeydi saxlanıldı.";
-                } else {
-                    statusText.textContent = "Səs qeydi saxlanmadı.";
-                }
-            });
-        };
+                fetch('/save-audio-verbal/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: formData
+                }).then(response => response.json()).then(data => {
+                    if (data.status === 'success') {
+                        statusText.textContent = "Ses kaydı kaydedildi.";
+                    } else {
+                        statusText.textContent = "Ses kaydı keydedilemedi.";
+                    }
+                });
+            };
+        }
     }
-}
-
 
     finishButton.onclick = function () {
         fetch('/complete-module/', {

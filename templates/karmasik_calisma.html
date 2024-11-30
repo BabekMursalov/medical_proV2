@@ -2,15 +2,15 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h4 class="text-center">KARMAŞIK ÇALIŞMA BELLEĞİ</h4>
+    <h3 class="text-center text-primary">{{user.username}} için Karmaşık Çalışma Belleği</h3>
 
     <!-- 1. AŞAMA: Geri sayım və səs qeydi -->
     <div id="asama1" class="mt-5">
         <h5 class="text-center">1. AŞAMA</h5>
-        <p class="text-center">‘Bir dakika süre boyunca 100’den geriye doğru ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.’</p>
+        <h4 class="text-center">‘Bir dakika süre boyunca 100’den geriye doğru ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.’</h4>
         <div class="text-center">
-            <h5 id="countdown1">01:00</h5>
-            <button id="startAsama1" class="btn btn-danger">Ses kaydını başlat</button>
+            <h5 class="text-danger"  id="countdown1">01:00</h5>
+            <button id="startAsama1" class="btn btn-danger">Ses kaydını başlatınız</button>
             <button id="stopAsama1" class="btn btn-secondary" style="display:none;">Durdur</button>
             <button id="finishAsama1" class="btn btn-success" style="display:none;" disabled>Bitti</button>
         </div>
@@ -19,7 +19,7 @@
     <!-- 2. AŞAMA: Videolar və klik izləməsi -->
     <div id="asama2" class="mt-5" style="display:none;">
         <h5 class="text-center">2. AŞAMA</h5>
-        <p class="text-center">‘Sayısal uyaran dizileri (0-9) ekranda sunulacaktır. Sunulan görsel uyaran bir önceki uyaranla aynı olduğunda klavyedeki hər hansı bir tuşa basınız.’</p>
+        <h4 class="text-center">‘Sayısal uyaran dizileri (0-9) ekranda sunulacaktır. Sunulan görsel uyaran bir önceki uyaranla aynı olduğunda ekrandaki tıkla butonuna basınız.’</p>
 
         <!-- Video 1 -->
         <div id="video1Container" class="text-center">
@@ -27,7 +27,7 @@
                 <source src="{{ video_urls.0 }}" type="video/mp4">
                 Videonuz cihaz tərəfindən dəstəklənmir.
             </video>
-            <button id="clickButton1" class="btn btn-primary mt-2">Klikle</button>
+            <button id="clickButton1" class="btn btn-primary mt-2">tıkla</button>
             <p id="clickCounter1">0 klik edildi</p>
         </div>
         
@@ -94,7 +94,7 @@ function startCountdown(duration, display) {
         minutes = parseInt(timer / 60, 10);
         seconds = parseInt(timer % 60, 10);
         seconds = seconds < 10 ? "0" + seconds : seconds;
-        display.textContent = minutes + ":" + seconds + " saniyə qaldı";
+        display.textContent = minutes + ":" + seconds + " saniye kaldı";
         if (--timer < 0) {
             clearInterval(countdownInterval);
             stopRecording();

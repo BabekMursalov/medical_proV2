@@ -56,16 +56,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/user_management/' %}active-link{% endif %}" href="{% url 'user_management' %}">İstifadəçilər</a>
+                        <a class="nav-link {% if request.path == '/user_management/' %}active-link{% endif %}" href="{% url 'user_management' %}">Kullanıcılar</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/module_results/' %}active-link{% endif %}" href="{% url 'module_results' %}">Modul Nəticələri</a>
+                        <a class="nav-link {% if request.path == '/module_results/' %}active-link{% endif %}" href="{% url 'module_results' %}">Modul sonuçları</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/analytics/' %}active-link{% endif %}" href="{% url 'analytics' %}">Təhlillər və Statistika</a>
+                        <a class="nav-link {% if request.path == '/analytics/' %}active-link{% endif %}" href="{% url 'analytics' %}">Statistik veriler</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link logout-link" href="{% url 'logout' %}">Çıxış</a>
+                        <a class="nav-link logout-link" href="{% url 'logout' %}">Çıkış</a>
                     </li>
                 </ul>
             </div>

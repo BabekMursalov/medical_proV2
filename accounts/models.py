@@ -16,6 +16,7 @@ class ClickRecord(models.Model):
     button = models.CharField(max_length=50)  # Yeni düymə sahəsi əlavə edilir
     click_time = models.FloatField()  # Saniyə olaraq klik zamanı
     click_date = models.DateTimeField(default=timezone.now)
+    video_index = models.IntegerField(null=True, blank=True)
     audio_file = models.ForeignKey('AudioFile', null=True, blank=True, on_delete=models.SET_NULL)  # Səs faylı
 
     def __str__(self):

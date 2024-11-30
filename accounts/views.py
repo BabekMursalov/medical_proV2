@@ -13,30 +13,33 @@ def home_view(request):
     return redirect('login')
 
 # Login görünüşü (POST sorğusu ilə login olarsa week_selection-a yönləndir)
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_protect
+import bleach  # XSS təhlükəsinə qarşı filtrasiya
+
+@csrf_protect
 def login_view(request):
     if request.method == 'POST':
-        # İstifadəçi məlumatlarını alırıq
-        username = request.POST['username']
-        password = request.POST['password']
-        
-        # İstifadəçini autentifikasiya edirik
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            # İstifadəçi uğurla autentifikasiya olundu, sistemi login edir
-            login(request, user)
-            return redirect('week_selection')  # Uğurlu login olduqda yönləndiriləcək URL
-        else:
-            # Uğursuz autentifikasiya, xətanı göstər
-            messages.error(request, 'İstifadəçi adı və ya şifrə yanlışdır.')
-    
-    # Əks halda sadəcə login səhifəsi göstərilir
-    return render(request, 'login.html')
+        # 1. Inputları filtr edin
+        username = bleach.clean(request.POST.get('username', ''))
+        password = bleach.clean(request.POST.get('password', ''))
 
+        # 2. Autentifikasiya
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            # İstifadəçini daxil edin
+            login(request, user)
+            return redirect('week_selection')  # Müvafiq yönləndirmə
+        else:
+            # Yanlış giriş cəhdi
+            return render(request, 'login.html', {
+                'error': 'Kullanıcı adı ve ya şifre hatalı'
+            })
+    else:
+        return render(request, 'login.html')
 
 
 def week_selection(request):
@@ -72,7 +75,7 @@ def attention_module(request, week):
     attention_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name="İşitsel Dikkat Modülü").first()
     if attention_completed and attention_completed.completed:
         return render(request, 'completed_message.html', {
-            'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.',
+            'message': 'Modül tamamlandı',
             'week': week
         })
 
@@ -155,6 +158,7 @@ import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import CompletedModule, ClickRecord
+
 @login_required
 def complete_module(request):
     if request.method == 'POST':
@@ -162,23 +166,29 @@ def complete_module(request):
         user = request.user
         week = data['week']
         module_name = data['module']
-        click_data = data.get('click_data', [])
+        click_data = data.get('click_data', None)  # Klik məlumatlarını yoxla, olmaya bilər
 
         # Həmin həftədə və moduldakı bitirmə vəziyyətini qeyd edirik
         completed_module, created = CompletedModule.objects.get_or_create(user=user, week=week, module_name=module_name)
         completed_module.completed = True
         completed_module.save()
 
-        # Əgər klik məlumatları varsa, onları qeyd edirik
-        for click in click_data:
-            ClickRecord.objects.create(
-                user=user,
-                week=week,
-                module=module_name,
-                click_time=click['click_time']
-            )
+        # Əgər klik məlumatları mövcuddursa, onları qeyd edirik
+        if click_data:
+            for click in click_data:
+                ClickRecord.objects.create(
+                    user=user,
+                    week=week,
+                    module=module_name,
+                    click_time=click.get('click_time', 0),  # Default olaraq 0 yazırıq
+                    button=click.get('button', 'N/A'),  # Default olaraq "N/A" yazırıq
+                    video_index=click.get('video_index')
+                )
 
         return JsonResponse({'status': 'success'})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
 
 
 
@@ -188,10 +198,20 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import CompletedModule, AudioFile
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import ModuleMedia, CompletedModule
+
 @login_required
 def verbal_memory_module(request, week):
     # Həftə və modul adına uyğun olaraq video fayllarını yükləyirik
     module_media = ModuleMedia.objects.filter(week=week, module_name="İşitsel sıralama modulü").first()
+    
+    # Debug: Video fayl sayını yoxlamaq üçün
+    if module_media:
+        video_count = module_media.video_files.count()
+        print(f"Debug: Video fayl sayı -> {video_count}")  # Terminalda video fayl sayını göstərəcək
+    
     video_urls = [video_file.video.url for video_file in module_media.video_files.all()] if module_media else []
 
     # Modulu tamamlayıb-tamamlamadığını yoxlayırıq
@@ -200,7 +220,7 @@ def verbal_memory_module(request, week):
     # Əgər modul tamamlanıbsa, `completed_message.html` səhifəsinə yönləndiririk
     if completed_module and completed_module.completed:
         return render(request, 'completed_message.html', {
-            'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.',
+            'message': 'Modül tamamlandı',
             'week': week
         })
 
@@ -245,7 +265,7 @@ def işitsel_sozel_module_view(request, week):
     # Əgər modul tamamlanıbsa, `complete_message.html` səhifəsinə yönləndiririk
     if completed_module and completed_module.completed:
         return render(request, 'completed_message.html', {
-            'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.',
+            'message': 'Modül tamamlandı',
             'week': week  # `week` dəyərini şablona göndəririk ki, geri dönmək üçün istifadə olunsun
         })
 
@@ -287,7 +307,7 @@ def calisma_bellegi_view(request, week):
 def basit_calisma_view(request, week):
     basit_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name='Basit Çalışma Belleği Modülü').first()
     if basit_completed and basit_completed.completed:
-        return render(request, 'completed_message.html', {'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.'})
+        return render(request, 'completed_message.html', {'message': 'Modül tamamlandı'})
 
     return render(request, 'basit_calisma.html', {'week': week})
 
@@ -300,7 +320,7 @@ def karmasik_calisma_view(request, week):
     # Modulu tamamlayıb-tamamlamadığını yoxlayırıq
     karmaşik_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name='Karmaşık Çalışma Belleği Modülü').first()
     if karmaşik_completed and karmaşik_completed.completed:
-        return render(request, 'completed_message.html', {'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.'})
+        return render(request, 'completed_message.html', {'message': 'Modül tamamlandı'})
 
     return render(request, 'karmasik_calisma.html', {
         'week': week,
@@ -316,7 +336,7 @@ def işitsel_bellek_view(request, week):
 
     if işitsel_bellek_completed and işitsel_bellek_completed.completed:
         return render(request, 'completed_message.html', {
-            'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.',
+            'message': 'Modül tamamlandı',
             'week': week
         })
 
@@ -348,7 +368,7 @@ def işitsel_zemin_view(request, week):
     
     if işitsel_zemin_completed and işitsel_zemin_completed.completed:
         return render(request, 'completed_message.html', {
-            'message': 'Bu modul artıq tamamlanmışdır və təkrar açıla bilməz.',
+            'message': 'Modül tamamlandı',
             'week': week  # `week` parametrini şablona göndəririk
         })
 
@@ -546,7 +566,7 @@ def audio_and_video_change(request):
             media.video_files.clear()
 
         # Yeni video faylları əlavə edirik
-        for i in range(1, 4):  # Maksimum 3 video faylı üçün
+        for i in range(1, 5):  # Maksimum 3 video faylı üçün
             video_file = request.FILES.get(f'video_file_{i}')
             if video_file:
                 video_instance = VideoFile.objects.create(video=video_file)
@@ -739,11 +759,18 @@ from .models import VerbalMemoryRecording
 @login_required
 def save_verbal_audio(request):
     if request.method == 'POST' and request.FILES.get('audio'):
+        print("Audio faylı daxil oldu:", request.FILES['audio'])
+        print("POST məlumatları:", request.POST)
         user = request.user
         week = request.POST.get('week')
         module_name = request.POST.get('module_name')  # Modulun adı
         phase = request.POST.get('phase')  # Hər faza üçün nömrə
         audio_file = request.FILES['audio']
+        print("Audio file:", audio_file)
+        print("User:", user)
+        print("Week:", week)
+        print("Module Name:", module_name)
+        print("Phase:", phase)
 
         # VerbalMemoryRecording modelinə audio faylını əlavə edirik
         VerbalMemoryRecording.objects.create(

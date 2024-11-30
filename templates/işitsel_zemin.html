@@ -2,24 +2,24 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h3 class="text-center">İŞİTSEL FİGÜR MODULU</h3>
-    <p class="text-center">Arka plan gürültüsünde kelimeler ve cümleler dinleyeceksiniz. Uyaranı dinledikten sonra anladığınız kelimeleri/cümleleri anladığınız şekilde tekrar ediniz.’ </p>
+    <h3 class="text-center text-primary">{{user.username}} İçin İşitsel Figür-Zemin Modülü </h3>
+    <h4 class="text-center">Arka plan gürültüsünde kelimeler ve cümleler dinleyeceksiniz. Uyaranı dinledikten sonra anladığınız kelimeleri/cümleleri anladığınız şekilde tekrar ediniz.’ </h4>
 
     <div class="text-center">
-        <p id="audioPlayingText">Ses<span id="currentAudioNumber">1</span> dinliyorsunuz...</p>
+        <h4 class="text-success" id="audioPlayingText">Ses<span id="currentAudioNumber">1</span> dinliyorsunuz...</h4>
         <audio id="audioPlayer" controls></audio>
 
         <!-- Səs Qeydini Başlat düyməsi -->
-        <button id="startRecordingButton" class="btn btn-danger mt-3" onclick="startRecording()">Ses kaydınızı başlatınız</button>
+        <button id="startRecordingButton" class="btn btn-danger mt-3" onclick="startRecording()">Ses kaydını başlatınız</button>
 
         <!-- Səs qeydi üçün saniyə sayğacı -->
         <p id="recordingTime" class="mt-2">00:00</p>
 
         <!-- Yadda Saxla düyməsi -->
-        <button id="saveRecordingButton" class="btn btn-success mt-3" onclick="saveRecording()" style="display:none;">Save</button>
+        <button id="saveRecordingButton" class="btn btn-success mt-3" onclick="saveRecording()" style="display:none;">Kaydet</button>
 
         <!-- Modulu Bitir düyməsi -->
-        <button id="finishModuleButton" class="btn btn-warning mt-3" style="display:none;">Modulü bitir</button>
+        <button id="finishModuleButton" class="btn btn-warning mt-3" style="display:none;">Modülü bitir</button>
     </div>
 </div>
 
@@ -48,7 +48,7 @@
         saveRecordingButton.style.display = "none";
         finishModuleButton.style.display = "none";
         recordingTimeDisplay.textContent = "00:00";
-        audioPlayingText.textContent = `Ses ${index + 1} dinleniyor...`;
+        audioPlayingText.textContent = ` ${index + 1}. uyaran oynatılıyor...`;
     }
 
     function resetRecordingTimer() {

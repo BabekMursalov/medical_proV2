@@ -2,11 +2,11 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h4 class="text-center">BASİT ÇALIŞMA BELLEĞİ</h4>
-    <p class="text-center">Bir dakika süre boyunca ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.</p>
+    <h3 class="text-center text-primary">{{user.username}} için Basit Çalışma Belleği</h3>
+    <h3 class="text-center">Bir dakika süre boyunca ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.</h3>
     <div class="text-center">
-        <h5 id="countdown">60 saniye kaldı</h5>
-        <button id="startRecording" class="btn btn-danger mt-3">Ses kaydını başlat</button>
+        <h5 class="text-danger" id="countdown">60 saniye kaldı</h5>
+        <button id="startRecording" class="btn btn-danger mt-3">Ses kaydını başlatınız</button>
         <button id="stopRecording" class="btn btn-secondary mt-3" style="display: none;">Durdur</button>
         <button id="finishButton" class="btn btn-success mt-3" style="display: none;" disabled>Bitti</button>
     </div>

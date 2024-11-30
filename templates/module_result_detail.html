@@ -19,7 +19,7 @@
         <h4>Click Vaxtları:</h4>
         <ul>
             {% for click in clicks %}
-                <li>{{ click.click_time }} {% if click.button %} - {{ click.button }}{% endif %}</li>
+                <li>{{ click.click_time }} {% if click.button %} - {{ click.button }} - {{click.video_index}}.video{% endif %}</li>
             {% endfor %}
         </ul>
     {% endif %}
