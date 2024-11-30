@@ -2,17 +2,17 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h3 class="text-center">İstifadəçilər</h3>
+    <h3 class="text-center">Kullanıcılar</h3>
     <div class="text-end mb-3">
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">İstifadəçi Yarat</button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">Kullanıcı yarat</button>
     </div>
 
     <table class="table table-hover">
         <thead class="table-light">
             <tr>
                 <th class="text-start">ID</th>
-                <th class="text-center">İstifadəçi Adı</th>
-                <th class="text-end">Əməliyyatlar</th>
+                <th class="text-center">Kullanıcı adı</th>
+                <th class="text-end">Hareketler</th>
             </tr>
         </thead>
         <tbody>
@@ -21,7 +21,7 @@
                 <td class="text-start">{{ user.id }}</td>
                 <td class="text-center">{{ user.username }}</td>
                 <td class="text-end">
-                    <button class="btn btn-primary me-2" onclick="openEditModal('{{ user.id }}', '{{ user.username }}')">Düzəliş et</button>
+                    <button class="btn btn-primary me-2" onclick="openEditModal('{{ user.id }}', '{{ user.username }}')">Düzelt</button>
                     <button class="btn btn-danger" onclick="confirmDelete('{{ user.id }}')">Sil</button>
                 </td>
             </tr>
@@ -53,7 +53,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="createUserModalLabel">Yeni İstifadəçi Yarat</h5>
+                <h5 class="modal-title" id="createUserModalLabel">Yeni kullanıcı yarat</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -63,17 +63,17 @@
                         <input type="text" class="form-control" id="newUsername" required>
                     </div>
                     <div class="mb-3">
-                        <label for="newPassword" class="form-label">Şifrə</label>
+                        <label for="newPassword" class="form-label">Şifre</label>
                         <input type="password" class="form-control" id="newPassword" required>
                     </div>
                     <div class="mb-3">
-                        <label for="newPasswordConfirm" class="form-label">Şifrə Təsdiqi</label>
+                        <label for="newPasswordConfirm" class="form-label">Şifre onayı</label>
                         <input type="password" class="form-control" id="newPasswordConfirm" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bağla</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
                 <button type="button" class="btn btn-success" onclick="createUser()">Yarat</button>
             </div>
         </div>
@@ -85,7 +85,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editUserModalLabel">İstifadəçini Düzəliş Et</h5>
+                <h5 class="modal-title" id="editUserModalLabel">Kullanıcı bilgilerini yenile</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -95,18 +95,18 @@
                         <input type="text" class="form-control" id="editUsername" required>
                     </div>
                     <div class="mb-3">
-                        <label for="editPassword" class="form-label">Yeni Şifrə (opsional)</label>
+                        <label for="editPassword" class="form-label">Yeni şifre </label>
                         <input type="password" class="form-control" id="editPassword">
                     </div>
                     <div class="mb-3">
-                        <label for="editPasswordConfirm" class="form-label">Yeni Şifrə Təsdiqi</label>
+                        <label for="editPasswordConfirm" class="form-label">Yeni şifre onayı</label>
                         <input type="password" class="form-control" id="editPasswordConfirm">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bağla</button>
-                <button type="button" class="btn btn-primary" onclick="saveChanges()">Yadda saxla</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" onclick="saveChanges()">Kaydet</button>
             </div>
         </div>
     </div>
@@ -117,15 +117,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteUserModalLabel">İstifadəçini Sil</h5>
+                <h5 class="modal-title" id="deleteUserModalLabel">Kullanıcı sil</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Bu istifadəçini silmək istədiyinizə əminsinizmi?</p>
+                <p>Kullanıcıyı silmek istediğinizden emin misiniz?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Xeyr</button>
-                <button type="button" class="btn btn-danger" onclick="deleteUser()">Bəli, Sil</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hayır</button>
+                <button type="button" class="btn btn-danger" onclick="deleteUser()">Evet, sil</button>
             </div>
         </div>
     </div>
@@ -135,7 +135,7 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="userToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
         <div class="toast-header">
-            <strong class="me-auto">Bildiriş</strong>
+            <strong class="me-auto">Bildiri</strong>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body" id="toastMessage">
@@ -166,7 +166,7 @@ function createUser() {
     const passwordConfirm = document.getElementById("newPasswordConfirm").value;
 
     if (password !== passwordConfirm) {
-        showToast("Şifrə və təsdiqi uyğun deyil.", "bg-danger");
+        showToast("Şifre ve ya onayı doğru değil.", "bg-danger");
         return;
     }
 
@@ -181,10 +181,10 @@ function createUser() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            showToast("İstifadəçi yaradıldı!", "bg-success");
+            showToast("Kullanıcı  oluşturuldu!", "bg-success");
             bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
         } else {
-            showToast("İstifadəçi yaradılmadı. Xəta baş verdi.", "bg-danger");
+            showToast("Kullanıcı oluşturulmadı", "bg-danger");
         }
     });
 }
@@ -195,7 +195,7 @@ function saveChanges() {
     const passwordConfirm = document.getElementById("editPasswordConfirm").value;
 
     if (password && password !== passwordConfirm) {
-        showToast("Yeni şifrə və təsdiqi uyğun deyil.", "bg-danger");
+        showToast("Şifre ve ya onayı doğru değil.", "bg-danger");
         return;
     }
 
@@ -210,10 +210,10 @@ function saveChanges() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            showToast("İstifadəçi yeniləndi!", "bg-success");
+            showToast("Kullanıcı güncellendi", "bg-success");
             bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
         } else {
-            showToast("İstifadəçi yenilənmədi. Xəta baş verdi.", "bg-danger");
+            showToast("Kullanıcı onaylanmadı", "bg-danger");
         }
     });
 }
@@ -228,11 +228,11 @@ function deleteUser() {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            showToast("İstifadəçi silindi!", "bg-success");
+            showToast("Kullanıcı silindi!", "bg-success");
             document.getElementById(`user-${selectedUserId}`).remove();
             bootstrap.Modal.getInstance(document.getElementById('deleteUserModal')).hide();
         } else {
-            showToast("İstifadəçi silinmədi. Xəta baş verdi.", "bg-danger");
+            showToast("Kullanıcı silinmedi.", "bg-danger");
         }
     });
 }
