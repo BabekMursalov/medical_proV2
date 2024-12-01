@@ -153,7 +153,7 @@ let clickCount3 = 0;
 
 document.getElementById('clickButton1').addEventListener('click', function () {
     clickCount1++;
-    document.getElementById('clickCounter1').textContent = clickCount1 + " klik edildi";
+    document.getElementById('clickCounter1').textContent = clickCount1 + " defa tıklnadı";
     document.getElementById('nextVideo2Button').style.display = 'block'; // 2-ci videoya keç düyməsini göstər
 });
 
@@ -166,7 +166,7 @@ document.getElementById('nextVideo2Button').addEventListener('click', function (
 
 document.getElementById('clickButton2').addEventListener('click', function () {
     clickCount2++;
-    document.getElementById('clickCounter2').textContent = clickCount2 + " klik edildi";
+    document.getElementById('clickCounter2').textContent = clickCount2 + " defa tıklandı";
 });
 
 document.getElementById('nextVideo3Button').addEventListener('click', function () {
@@ -180,7 +180,7 @@ document.getElementById('nextVideo3Button').addEventListener('click', function (
 
 document.getElementById('clickButton3').addEventListener('click', function () {
     clickCount3++;
-    document.getElementById('clickCounter3').textContent = clickCount3 + " klik edildi";
+    document.getElementById('clickCounter3').textContent = clickCount3 + " defa tıklandı";
 });
 
 // "Kaydet" düyməsinə klik edildikdə klik saylarını database-ə göndər
@@ -201,7 +201,7 @@ document.getElementById('kaydetButton').addEventListener('click', function () {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Klik sayları uğurla qeyd edildi.');
+            alert('Tıklamalar kaydedildi');
         } else {
             alert('Xəta baş verdi.');
         }
@@ -225,7 +225,7 @@ document.getElementById('finishAsama2').addEventListener('click', function () {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Modul bitdi və artıq yenidən açıla bilməz.');
+            alert('Modül tamamlanmıştır');
             window.location.href = '/calisma-bellegi/' + '{{ week }}';
         }
     }).catch(err => {
@@ -249,7 +249,7 @@ document.getElementById('finishAsama2').addEventListener('click', function () {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Modul bitdi və artıq yenidən açıla bilməz.');
+            alert('Modül tamamlanmıştır');
             window.location.href = '/calisma-bellegi/' + '{{ week }}';
         }
     }).catch(err => {
