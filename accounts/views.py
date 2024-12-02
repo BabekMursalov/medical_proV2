@@ -899,12 +899,12 @@ def get_modules_for_week(user_id, week):
     """Həftə və istifadəçiyə görə mövcud modulları qaytarır."""
     MODULE_MAPPING = {
         1: 'İşitsel Dikkat Modülü',
-        2: 'İşitsel sıralama modulü',
-        3: 'İşitsel-sözel modulü',
+        2: 'İşitsel Sıralama Modulü',
+        3: 'Sözel Bellek Modülü ',
         4: 'Basit Çalışma Belleği Modülü',
         5: 'Karmaşık Çalışma Belleği Modülü',
-        6: 'İşitsel-Bellek Modülü',
-        7: 'Figür-Zemin Modülü',
+        6: 'İşitsel – Sözel Kısa Süreli Bellek Modülü',
+        7: 'İşitsel Figür-Zemin Modülü ',
     }
 
     modules = []
