@@ -21,23 +21,23 @@
             <label for="module_name">Modül Seçimi:</label>
             <select name="module_name" id="module_name" class="form-select" onchange="updateFileFields()" required>
                 <option value="" disabled selected>Modül seçin</option>
-                <option value="İşitsel dikkat modülü">İşitsel dikkat modülü</option>
-                <option value="İşitsel sıralama modulü">İşitsel sıralama modulü</option>
-                <option value="İşitsel-sözel modulü">İşitsel-Sözel Kısa Süreli Bellek Modülü</option>
+                <option value="İşitsel dikkat modülü">İşitsel Dikkat Modülü</option>
+                <option value="İşitsel sıralama modulü">İşitsel Sıralama Modülü</option>
+                <option value="İşitsel-sözel modulü">Sözel Bellek Modülü</option>
                 <option value="Karmaşık Çalışma Belleği Modülü">Karmaşık Çalışma Belleği Modülü</option>
-                <option value="İşitsel-bellek modülü">Sözel Bellek modülü</option>
-                <option value="Figür-zemin modülü">Figür-zemin modülü</option>
+                <option value="İşitsel-bellek modülü">İşitsel-Sözel Kısa Süreli Bellek Modülü</option>
+                <option value="Figür-zemin modülü">İşitsel Figür-Zemin Modülü</option>
 
             </select>
         </div>
 
         <div id="audioFilesContainer" style="display: none;">
-            <label>Səs Faylları:</label>
+            <label>Ses/Video dosyaları</label>
             <div id="audioFileInputs"></div>
         </div>
 
         <div id="videoFilesContainer" style="display: none;">
-            <label>Video Faylları:</label>
+            <label>Ses/Video dosyaları</label>
             <div id="videoFileInputs"></div>
         </div>
 
@@ -104,7 +104,7 @@ function createVideoFileInputs(count) {
         input.accept = 'video/*';
         input.className = 'form-control my-1';
         const label = document.createElement('label');
-        label.textContent = `${i}-ci Video Faylı`;
+        label.textContent = `${i}.uyaran`;
         document.getElementById('videoFileInputs').appendChild(label);
         document.getElementById('videoFileInputs').appendChild(input);
     }
