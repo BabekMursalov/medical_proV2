@@ -18,7 +18,7 @@
         </div>
 
         <div class="form-group mb-3">
-            <label for="module_name">Modul Seçimi:</label>
+            <label for="module_name">Modül Seçimi:</label>
             <select name="module_name" id="module_name" class="form-select" onchange="updateFileFields()" required>
                 <option value="" disabled selected>Modül seçin</option>
                 <option value="İşitsel dikkat modülü">İşitsel dikkat modülü</option>
@@ -90,7 +90,7 @@ function createAudioFileInputs(count) {
         input.accept = 'audio/*';
         input.className = 'form-control my-1';
         const label = document.createElement('label');
-        label.textContent = `${i}-ci Səs Faylı`;
+        label.textContent = `${i}.uyaran`;
         document.getElementById('audioFileInputs').appendChild(label);
         document.getElementById('audioFileInputs').appendChild(input);
     }
