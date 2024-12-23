@@ -402,7 +402,7 @@ def admin_login(request):
             login(request, user)
             return redirect('admin_dashboard')
         else:
-            messages.error(request, "İcazəsiz giriş və ya yalnış məlumat.")
+            messages.error(request, "Kullanıcı adı veya şifre yanlış")
     return render(request, 'admin_login.html')
 
 
