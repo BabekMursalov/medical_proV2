@@ -16,7 +16,7 @@
 
     <!-- İşitsel Dikkat Modülü və İşitsel sıralama modulü -->
     {% if clicks %}
-        <h4>Click Vaxtları:</h4>
+        <h4>Tıklama Zamanları</h4>
         <ul>
             {% for click in clicks %}
                 <li>{{ click.click_time }} {% if click.button %} - {{ click.button }} - {{click.video_index}}.video{% endif %}</li>
@@ -26,7 +26,7 @@
 
     <!-- İşitsel-sözel modulü -->
     {% if phase_1_audios %}
-        <h4>1. Aşama Ses Yazıları:</h4>
+        <h4>1. Aşama Ses Kayıtları:</h4>
         <ul>
             {% for audio in phase_1_audios %}
                 <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -34,7 +34,7 @@
         </ul>
     {% endif %}
     {% if phase_2_audios %}
-        <h4>2. Aşama Ses Yazıları:</h4>
+        <h4>2. Aşama Ses Kayıtları:</h4>
         <ul>
             {% for audio in phase_2_audios %}
                 <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -44,7 +44,7 @@
 
 <!-- Basit çalışma belleği -->
 {% if module_id == 4 and audio_files %}
-    <h4>Basit Çalışma Belleği Ses Yazıları:</h4>
+    <h4>Basit Çalışma Belleği Ses Kayıtları:</h4>
     <ul>
         {% for audio in audio_files %}
             <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -55,7 +55,7 @@
 <!-- Karmaşık çalışma belleği -->
 {% if module_id == 5 %}
     {% if audio_files %}
-        <h4>Karmaşık Çalışma Belleği Ses Yazıları:</h4>
+        <h4>Karmaşık Çalışma Belleği Ses Kayıtları:</h4>
         <ul>
             {% for audio in audio_files %}
                 <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -64,7 +64,7 @@
     {% endif %}
 
     {% if click_data %}
-        <h4>Karmaşık Çalışma Belleği Klikleme Sayıları:</h4>
+        <h4>Karmaşık Çalışma Belleği Tıklama Sayıları:</h4>
         <ul>
             <li>1-ci video: {{ click_data.video_1_clicks }}</li>
             <li>2-ci video: {{ click_data.video_2_clicks }}</li>
@@ -79,7 +79,7 @@
 {% load custom_split %}
 
 {% if audio_records %}
-    <h4>Ses Yazıları:</h4>
+    <h4>Ses Kayıtları:</h4>
     <ul>
         {% for i in "1,2,3,4,5,6,7,8,9,10"|split:"," %}
             {% with "ses"|add:i as attr_name %}
