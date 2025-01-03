@@ -9,7 +9,7 @@
 
         <div class="form-group mb-3">
             <label for="week">Hafta seçimi:</label>
-            <select name="week" id="week" class="form-select" required>
+            <select name="week" id="week" class="form-select" onchange="checkWeek()" required>
                 <option value="" disabled selected>Hafta seçin</option>
                 {% for i in 8|get_range %}
                     <option value="{{ i }}">Hafta {{ i }}</option>
@@ -18,26 +18,40 @@
         </div>
 
         <div class="form-group mb-3">
-            <label for="module_name">Modül Seçimi:</label>
+            <label for="module_name">Modul Seçimi:</label>
             <select name="module_name" id="module_name" class="form-select" onchange="updateFileFields()" required>
                 <option value="" disabled selected>Modül seçin</option>
-                <option value="İşitsel dikkat modülü">İşitsel Dikkat Modülü</option>
-                <option value="İşitsel sıralama modulü">İşitsel Sıralama Modülü</option>
-                <option value="İşitsel-sözel modulü">Sözel Bellek Modülü</option>
+                <option value="İşitsel dikkat modülü">İşitsel dikkat modülü</option>
+                <option value="İşitsel sıralama modulü">İşitsel sıralama modulü</option>
+                <option value="İşitsel-sözel modulü">İşitsel-Sözel Kısa Süreli Bellek Modülü</option>
                 <option value="Karmaşık Çalışma Belleği Modülü">Karmaşık Çalışma Belleği Modülü</option>
-                <option value="İşitsel-bellek modülü">İşitsel-Sözel Kısa Süreli Bellek Modülü</option>
-                <option value="Figür-zemin modülü">İşitsel Figür-Zemin Modülü</option>
-
+                <option value="İşitsel-bellek modülü">Sözel Bellek modülü</option>
+                <option value="Figür-zemin modülü">Figür-zemin modülü</option>
             </select>
         </div>
 
         <div id="audioFilesContainer" style="display: none;">
-            <label>Ses/Video dosyaları</label>
+            <label>Ses dosyaları:</label>
             <div id="audioFileInputs"></div>
         </div>
 
+        <div class="form-group mb-3">
+            <label for="task_text">Görev metni:</label>
+            <textarea name="task_text" id="task_text" class="form-control" rows="3" placeholder="Görev metni ekleyin"></textarea>
+        </div>
+        
+        
+        
+        
+        
+
+        <div id="questionsContainer" style="display: none;">
+            <label>Sorular:</label>
+            <div id="questionsInputs"></div>
+        </div>
+
         <div id="videoFilesContainer" style="display: none;">
-            <label>Ses/Video dosyaları</label>
+            <label>Video dosyaları:</label>
             <div id="videoFileInputs"></div>
         </div>
 
@@ -46,40 +60,73 @@
 </div>
 
 <script>
+let selectedWeek = null;
+
+// Həftəni seçəndə dəyəri saxlayırıq
+function checkWeek() {
+    selectedWeek = parseInt(document.getElementById('week').value, 10);
+}
+
 function updateFileFields() {
-    const module = document.getElementById('module_name').value;
+    const module = document.getElementById('module_name').value; // Modul seçimi
+    const weekElement = document.getElementById('week'); // Həftə seçimi
+    const week = parseInt(weekElement?.value || 0, 10); // Həftəni tam ədəd olaraq götür
     const audioFilesContainer = document.getElementById('audioFilesContainer');
     const videoFilesContainer = document.getElementById('videoFilesContainer');
+    const taskTextArea = document.getElementById('task_text'); // Task text area
     const audioFileInputs = document.getElementById('audioFileInputs');
     const videoFileInputs = document.getElementById('videoFileInputs');
 
+    // Sahələri təmizləyirik
     audioFileInputs.innerHTML = '';
     videoFileInputs.innerHTML = '';
-    if (module === 'İşitsel dikkat modülü') {
-    audioFilesContainer.style.display = 'block';
-    videoFilesContainer.style.display = 'none';
-    createAudioFileInputs(1); // Yalnız səs fayllarını göstərir
-} else if (module === 'İşitsel sıralama modulü') {
-    audioFilesContainer.style.display = 'none';
-    videoFilesContainer.style.display = 'block'; // Yalnız video fayllarını göstərir
-    createVideoFileInputs(4); // 4 video faylı üçün
-} else if (module === 'İşitsel-bellek modülü') {
-    audioFilesContainer.style.display = 'block';
-    videoFilesContainer.style.display = 'none';
-    createAudioFileInputs(10);  // 10 səs faylı üçün
-} else if (module === 'Figür-zemin modülü') {
-    audioFilesContainer.style.display = 'block';
-    videoFilesContainer.style.display = 'none';
-    createAudioFileInputs(8);  // 8 səs faylı üçün
-} else if (module === 'Karmaşık Çalışma Belleği Modülü') {
-    audioFilesContainer.style.display = 'none';
-    videoFilesContainer.style.display = 'block';
-    createVideoFileInputs(3);  // 3 video faylı üçün
-} else {
-    audioFilesContainer.style.display = 'none';
-    videoFilesContainer.style.display = 'none';
-}
+    taskTextArea.value = ''; // Textarea sahəsini sıfırlayırıq
+    taskTextArea.placeholder = 'Uyaranlar için görev ekleyin'; // Varsayılan placeholder
 
+    // Şərtlərə uyğun dəyişikliklər
+    if (module === 'İşitsel dikkat modülü') {
+        audioFilesContainer.style.display = 'block';
+        videoFilesContainer.style.display = 'none';
+
+        if ([1, 2, 5, 6].includes(week)) {
+            createAudioFileInputs(2); // 2 audio faylı
+            taskTextArea.placeholder = '1. uyaran için: ... 2. uyaran için: ...'; // Mətn ipucu
+        } else if ([3, 4].includes(week)) {
+            createAudioFileInputs(4); // 4 audio faylı
+            taskTextArea.placeholder = '1. uyaran için: ... 2. uyaran için: ... 3. uyaran için: ... 4. uyaran için: ...';
+        } else if (week === 7 || week === 8) {
+            questionsContainer.style.display = 'block';
+            createAudioFileInputs(2); // 2 audio faylı
+            createQuestionInputs(2, 4); // Hər biri üçün 4 sual
+            taskTextArea.placeholder = '1. uyaran için sorular: ... 2. uyaran için sorular: ...';
+        } else {
+            taskTextArea.placeholder = 'Bu hafta için görev yok'; // Varsayılan mətn
+        }
+    } else if (module === 'İşitsel sıralama modulü') {
+        audioFilesContainer.style.display = 'none';
+        videoFilesContainer.style.display = 'block';
+        createVideoFileInputs(4); // 4 video faylı
+        taskTextArea.placeholder = 'Görev metni ekleyin';
+    } else if (module === 'İşitsel-bellek modülü') {
+        audioFilesContainer.style.display = 'block';
+        videoFilesContainer.style.display = 'none';
+        createAudioFileInputs(10); // 10 audio faylı
+        taskTextArea.placeholder = 'Görev metni ekleyin.';
+    } else if (module === 'Figür-zemin modülü') {
+        audioFilesContainer.style.display = 'block';
+        videoFilesContainer.style.display = 'none';
+        createAudioFileInputs(8); // 8 audio faylı
+        taskTextArea.placeholder = 'Görev metni ekleyin.';
+    } else if (module === 'Karmaşık Çalışma Belleği Modülü') {
+        audioFilesContainer.style.display = 'none';
+        videoFilesContainer.style.display = 'block';
+        createVideoFileInputs(3); // 3 video faylı
+        taskTextArea.placeholder = 'Görev metni ekleyin';
+    } else {
+        audioFilesContainer.style.display = 'none';
+        videoFilesContainer.style.display = 'none';
+        taskTextArea.placeholder = 'Modül seçin ve görev metni ekleyin';
+    }
 }
 
 function createAudioFileInputs(count) {
@@ -90,9 +137,24 @@ function createAudioFileInputs(count) {
         input.accept = 'audio/*';
         input.className = 'form-control my-1';
         const label = document.createElement('label');
-        label.textContent = `${i}.uyaran`;
+        label.textContent = `${i}. Uyaran`;
         document.getElementById('audioFileInputs').appendChild(label);
         document.getElementById('audioFileInputs').appendChild(input);
+    }
+}
+
+function createQuestionInputs(audioCount, questionCount) {
+    for (let i = 1; i <= audioCount; i++) {
+        for (let j = 1; j <= questionCount; j++) {
+            const label = document.createElement('label');
+            label.textContent = `${i}-ci ses dosyası, ${j}. soru:`;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = `question_audio_${i}_${j}`;
+            input.className = 'form-control my-1';
+            document.getElementById('questionsInputs').appendChild(label);
+            document.getElementById('questionsInputs').appendChild(input);
+        }
     }
 }
 
@@ -104,7 +166,7 @@ function createVideoFileInputs(count) {
         input.accept = 'video/*';
         input.className = 'form-control my-1';
         const label = document.createElement('label');
-        label.textContent = `${i}.uyaran`;
+        label.textContent = `${i}-ci Video Dosyası`;
         document.getElementById('videoFileInputs').appendChild(label);
         document.getElementById('videoFileInputs').appendChild(input);
     }
