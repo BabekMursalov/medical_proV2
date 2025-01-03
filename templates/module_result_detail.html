@@ -9,24 +9,69 @@
 
     <!-- Modulun tamamlanma tarixi -->
     {% if completion_date %}
-        <p class="text-success"><strong>Modülün tamamlanma tarihi:</strong> {{ completion_date }}</p>
+        <p class="text-success"><strong>Modülün bitme tarihi:</strong> {{ completion_date|date:"j F Y, H:i" }}</p>
     {% else %}
-        <p class="text-danger">Bu modül henüz tamamlanmamıştır.</p>
+        <p class="text-danger">Modül tamamlanmamıştır.</p>
     {% endif %}
 
-    <!-- İşitsel Dikkat Modülü və İşitsel sıralama modulü -->
-    {% if clicks %}
-        <h4>Tıklama Zamanları</h4>
-        <ul>
-            {% for click in clicks %}
-                <li>{{ click.click_time }} {% if click.button %} - {{ click.button }} - {{click.video_index}}.video{% endif %}</li>
+    {% if module_id == 1 %}
+    {% if week|add:"0" < 7 %}
+        <!-- 1-6-cı həftələr üçün klik məlumatları -->
+        {% if clicks %}
+            <h4>Tıklama zamanları:</h4>
+            <ul>
+                {% for click in clicks %}
+                    <li>{{ click.click_time }} saniyə 
+                        {% if click.audio_index %}
+                            ({{ click.audio_index }}-ci səs)
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Tıklama zamanları yok</p>
+        {% endif %}
+    {% elif week|add:"0" == 7 or week|add:"0" == 8 %}
+        <!-- 7-8-ci həftələr üçün suallar və cavablar -->
+        <h4>Sorular ve Cevaplar:</h4>
+        {% if audio_responses %}
+            {% for audio_response in audio_responses %}
+                <h5>{{ forloop.counter }}. Səs üçün:</h5>
+                <ul>
+                    {% for question in audio_response.questions %}
+                        <li>
+                            <strong>{{ question.question_text }}</strong>: 
+                            {% if question.answer %}
+                                {{ question.answer }}
+                            {% else %}
+                                Cevap yok
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
             {% endfor %}
-        </ul>
+        {% else %}
+            <p>Soru bulunamadı.</p>
+        {% endif %}
     {% endif %}
+{% endif %}
 
+
+
+    <!-- İşitsel Sıralama Modulü -->
+    {% if module_id == 2 %}
+        {% if clicks %}
+            <h4>Tıklama zamanları:</h4>
+            <ul>
+                {% for click in clicks %}
+                    <li>{{ click.click_time }} {% if click.button %} - {{ click.button }} - {{ click.video_index }}.video{% endif %}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endif %}
     <!-- İşitsel-sözel modulü -->
     {% if phase_1_audios %}
-        <h4>1. Aşama Ses Kayıtları:</h4>
+        <h4>1. Aşama ses kayıtları:</h4>
         <ul>
             {% for audio in phase_1_audios %}
                 <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -34,7 +79,7 @@
         </ul>
     {% endif %}
     {% if phase_2_audios %}
-        <h4>2. Aşama Ses Kayıtları:</h4>
+        <h4>2. Aşama ses kayıtları:</h4>
         <ul>
             {% for audio in phase_2_audios %}
                 <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -44,7 +89,7 @@
 
 <!-- Basit çalışma belleği -->
 {% if module_id == 4 and audio_files %}
-    <h4>Basit Çalışma Belleği Ses Kayıtları:</h4>
+    <h4>Basit Çalışma Belleği Ses Dosyaları:</h4>
     <ul>
         {% for audio in audio_files %}
             <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -55,7 +100,7 @@
 <!-- Karmaşık çalışma belleği -->
 {% if module_id == 5 %}
     {% if audio_files %}
-        <h4>Karmaşık Çalışma Belleği Ses Kayıtları:</h4>
+        <h4>Karmaşık Çalışma Belleği Ses Dosyaları:</h4>
         <ul>
             {% for audio in audio_files %}
                 <li><audio controls src="{{ audio.audio_file.url }}"></audio></li>
@@ -79,7 +124,7 @@
 {% load custom_split %}
 
 {% if audio_records %}
-    <h4>Ses Kayıtları:</h4>
+    <h4>Ses Dosyaları:</h4>
     <ul>
         {% for i in "1,2,3,4,5,6,7,8,9,10"|split:"," %}
             {% with "ses"|add:i as attr_name %}
@@ -97,11 +142,6 @@
         {% endfor %}
     </ul>
 {% endif %}
-
-
-
-
-
 
 </div>
 {% endblock %}
