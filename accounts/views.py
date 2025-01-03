@@ -56,20 +56,26 @@ def week_modules(request, week):
 
 
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from .models import ClickRecord, CompletedModule, AudioFile, ModuleMedia
-from django.contrib.auth.decorators import login_required
+from .models import ModuleMedia, Question, CompletedModule
 import json
-
-# views.py
-from django.shortcuts import render, get_object_or_404
-from .models import ModuleMedia
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 @login_required
 def attention_module(request, week):
     # Həftə və modul adına uyğun olaraq səs fayllarını yükləyirik
     module_media = ModuleMedia.objects.filter(week=week, module_name="İşitsel Dikkat Modülü").first()
+    
     audio_urls = [audio_file.audio.url for audio_file in module_media.audio_files.all()] if module_media else []
+    task_text = module_media.task_text if module_media else None
+    # Sualları yükləyirik və hər bir audio faylı ilə əlaqələndiririk (yalnız 7 və 8-ci həftələr üçün)
+    questions_data = {}
+    if week in [7, 8] and module_media:
+        for index, audio_file in enumerate(module_media.audio_files.all()[:2]):  # Yalnız 2 səs faylı
+            related_questions = Question.objects.filter(audio_file=audio_file).values('id', 'question_text')
+            questions_data[index] = list(related_questions)
+    
+    
 
     # Attention modulu tamamlanıbsa, `completed_message.html` səhifəsinə yönləndiririk
     attention_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name="İşitsel Dikkat Modülü").first()
@@ -82,11 +88,21 @@ def attention_module(request, week):
     # Əks halda `attention_module.html` şablonuna yönləndiririk
     return render(request, 'attention_module.html', {
         'audio_urls': audio_urls,
+        'questions_data': json.dumps(questions_data),  # Sualları JSON formatında göndəririk
+        'is_special_week': week in [7, 8],  # Xüsusi həftələrdə fərqli davranış
         'week': week,
         'user': request.user,
         'media_url': settings.MEDIA_URL,
         'attention_completed': attention_completed.completed if attention_completed else False,
+        'task_text': task_text,
+        
     })
+
+
+
+
+
+
 
 
 
@@ -164,17 +180,18 @@ def complete_module(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         user = request.user
-        week = data['week']
+        week = int(data['week'])  # Week dəyərini tam ədədə çeviririk
         module_name = data['module']
-        click_data = data.get('click_data', None)  # Klik məlumatlarını yoxla, olmaya bilər
+        click_data = data.get('click_data', [])  # Klik məlumatlarını yoxla, olmaya bilər
+        answers_data = data.get('answers_data', [])  # Sual-cavab məlumatlarını yoxla
 
         # Həmin həftədə və moduldakı bitirmə vəziyyətini qeyd edirik
         completed_module, created = CompletedModule.objects.get_or_create(user=user, week=week, module_name=module_name)
         completed_module.completed = True
         completed_module.save()
 
-        # Əgər klik məlumatları mövcuddursa, onları qeyd edirik
-        if click_data:
+        # 1-6 həftələr üçün klik məlumatlarını saxlayırıq
+        if week < 7 and click_data:
             for click in click_data:
                 ClickRecord.objects.create(
                     user=user,
@@ -182,12 +199,33 @@ def complete_module(request):
                     module=module_name,
                     click_time=click.get('click_time', 0),  # Default olaraq 0 yazırıq
                     button=click.get('button', 'N/A'),  # Default olaraq "N/A" yazırıq
-                    video_index=click.get('video_index')
+                    video_index=click.get('video_index'),
+                    audio_index=click.get('audio_index')
                 )
+
+        # 7-8 həftələr üçün sual-cavab məlumatlarını saxlayırıq
+        elif week in [7, 8] and answers_data:
+            for answer in answers_data:
+                question_id = answer.get('question_id')
+                response_text = answer.get('answer')
+
+                if question_id and response_text:
+                    ClickRecord.objects.create(
+                        user=user,
+                        week=week,
+                        module=module_name,
+                        answers={
+                            'question_id': question_id,
+                            'answer': response_text
+                        }
+                    )
 
         return JsonResponse({'status': 'success'})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+
+
 
 
 
@@ -402,7 +440,7 @@ def admin_login(request):
             login(request, user)
             return redirect('admin_dashboard')
         else:
-            messages.error(request, "Kullanıcı adı veya şifre yanlış")
+            messages.error(request, "İcazəsiz giriş və ya yalnış məlumat.")
     return render(request, 'admin_login.html')
 
 
@@ -531,33 +569,57 @@ from django.contrib import messages
 from .models import ModuleMedia, AudioFile, VideoFile
 from django.contrib.auth.decorators import login_required
 
+
+from django.urls import reverse
+
 @login_required
 def audio_and_video_change(request):
+    media = None
+    task_text = None  # Task text-in default dəyəri
+
     if request.method == 'POST':
         week = request.POST.get('week')
         module_name = request.POST.get('module_name')
-        
+        task_text = request.POST.get('task_text')
+
         # Müəyyən həftə və modul üçün media obyektini əldə edin və ya yaradın
         media, _ = ModuleMedia.objects.get_or_create(week=week, module_name=module_name)
 
-        # Bu modul üçün mövcud olan bütün köhnə səsləri silirik
+        # Task Text əlavə edilməsi
+        media.task_text = task_text
+        media.save()
+
+        # Köhnə audio və sualları silirik
         if media.audio_files.count() > 0:
             for audio in media.audio_files.all():
-                # Faylı fiziki olaraq silirik
                 if audio.audio:
-                    audio.audio.delete(save=False)
-                # Database-dən səs obyektini silirik
+                    audio.audio.delete(save=False)  # Fiziki faylı sil
+                Question.objects.filter(audio_file=audio).delete()
                 audio.delete()
             media.audio_files.clear()
 
         # Yeni audio faylları əlavə edirik
-        for i in range(1, 11):  # Maksimum 10 səs faylı üçün
+        added_audio_files = []
+        for i in range(1, 11):  # 4 audio faylı əlavə edilir
             audio_file = request.FILES.get(f'audio_file_{i}')
             if audio_file:
                 audio_instance = AudioFile.objects.create(audio=audio_file)
                 media.audio_files.add(audio_instance)
+                added_audio_files.append(audio_instance)
 
-        # Video faylları üçün köhnə videoları silirik
+        # Hər audio faylı üçün suallar əlavə edirik
+        for i, audio_instance in enumerate(added_audio_files, start=1):
+            for j in range(1, 5):  # Hər audio üçün 4 sual
+                question_text = request.POST.get(f'question_audio_{i}_{j}')
+                if question_text:
+                    Question.objects.create(
+                        week=week,
+                        module_name=module_name,
+                        question_text=question_text,
+                        audio_file=audio_instance
+                    )
+
+        # Köhnə video faylları silirik
         if media.video_files.count() > 0:
             for video in media.video_files.all():
                 if video.video:
@@ -566,16 +628,27 @@ def audio_and_video_change(request):
             media.video_files.clear()
 
         # Yeni video faylları əlavə edirik
-        for i in range(1, 5):  # Maksimum 3 video faylı üçün
+        for i in range(1, 5):  # Maksimum 4 video faylı
             video_file = request.FILES.get(f'video_file_{i}')
             if video_file:
                 video_instance = VideoFile.objects.create(video=video_file)
                 media.video_files.add(video_instance)
 
         media.save()
-        messages.success(request, f"{module_name} modulu üçün media faylları uğurla yeniləndi!")
 
-        return redirect('audio_and_video_change')
+        # Yönləndirmədə week və module_name parametrlərini əlavə edirik
+        messages.success(request, f"{module_name} modulu üçün media faylları və suallar uğurla yeniləndi!")
+        return redirect(f"{reverse('audio_and_video_change')}?week={week}&module_name={module_name}")
+
+    # GET sorğusu zamanı media və task_text
+    week = request.GET.get('week')
+    module_name = request.GET.get('module_name')
+    
+    if week and module_name:
+        media = ModuleMedia.objects.filter(week=week, module_name=module_name).first()
+        if media:
+            task_text = media.task_text
+    
 
     # Seçim üçün mövcud həftə və modullar
     weeks = ModuleMedia.objects.values_list('week', flat=True).distinct().order_by('week')
@@ -587,33 +660,39 @@ def audio_and_video_change(request):
         'Figür-zemin modülü'
     ]
 
+    print("GET request task_text:", task_text)
     return render(request, 'audio_and_video_change.html', {
         'weeks': weeks,
         'modules': modules,
+        'media': media,
+        'task_text': task_text  # Task Text şablona ötürülür
     })
 
 
 
 
-from .models import ModuleMedia
 
-def populate_modulemedia():
-    module_names = [
-        'İşitsel dikkat modülü',
-        'İşitsel sıralama modulü',
-        'Çalışma belleği modülü',
-        'İşitsel-bellek modülü',
-        'Figür-zemin modülü'
-    ]
-    
-    weeks = range(1, 9)  # Hər həftə üçün
 
-    # Hər həftə üçün lazımlı modulları yarat
-    for week in weeks:
-        for module_name in module_names:
-            ModuleMedia.objects.get_or_create(week=week, module_name=module_name)
+
+# from .models import ModuleMedia
+
+# def populate_modulemedia():
+#     module_names = [
+#         'İşitsel dikkat modülü',
+#         'İşitsel sıralama modulü',
+#         'Çalışma belleği modülü',
+#         'İşitsel-bellek modülü',
+#         'Figür-zemin modülü'
+#     ]
     
-    print("ModuleMedia cədvəli yenidən yaradıldı və məlumatlarla dolduruldu.")
+#     weeks = range(1, 9)  # Hər həftə üçün
+
+#     # Hər həftə üçün lazımlı modulları yarat
+#     for week in weeks:
+#         for module_name in module_names:
+#             ModuleMedia.objects.get_or_create(week=week, module_name=module_name)
+    
+#     print("ModuleMedia cədvəli yenidən yaradıldı və məlumatlarla dolduruldu.")
 
 
 from django.http import JsonResponse
@@ -822,8 +901,8 @@ MODULE_MAPPING = {
         3: 'İşitsel-sözel modulü',
         4: 'Basit Çalışma Belleği Modülü',
         5: 'Karmaşık Çalışma Belleği Modülü',
-        6: 'İşitsel-Bellek Modülü',
-        7: 'Figür-Zemin Modülü',
+        6: 'İşitsel-bellek modülü',
+        7: 'Figür-zemin Modülü',
 }
 
 def get_module_name(module_id):
@@ -847,12 +926,42 @@ def module_details(request, user_id, week, module_id):
         'module_id': module_id,
         'week': week,
         'completion_date': completion_info.completion_date if completion_info else None,
+        'clicks': [],  # Varsayılan olaraq boş
+        'audio_responses': []
+    
     }
 
     # Modul növlərinə görə məlumatlar
-    if module_id in [1, 2]:  # İşitsel Dikkat Modülü və İşitsel sıralama modulü
+    if module_id in [1, 2]:  # İşitsel Dikkat Modülü və İşitsel Sıralama Modülü
         clicks = ClickRecord.objects.filter(user_id=user_id, week=week, module=module_name)
-        context['clicks'] = clicks
+        context['clicks'] = clicks  
+
+    # Suallar və cavablar yalnız İşitsel Dikkat Modülü (module_id == 1) üçün lazımdır
+    if module_id == 1 and week in [7, 8]:
+        audio_files = AudioFile.objects.filter(modulemedia__week=week, modulemedia__module_name=module_name)
+        audio_responses = []
+
+        for audio in audio_files:
+            questions = Question.objects.filter(audio_file=audio)
+            question_data = []
+
+            for question in questions:
+                # Cavabları ClickRecord-dan tapırıq
+                answer_record = clicks.filter(answers__question_id=str(question.id)).first()
+                answer = answer_record.answers.get('answer') if answer_record and 'answer' in answer_record.answers else None
+                
+                question_data.append({
+                    'question_text': question.question_text,
+                    'answer': answer
+                })
+
+            audio_responses.append({
+                'audio': audio,
+                'questions': question_data
+            })
+
+        context['audio_responses'] = audio_responses
+
 
     # İşitsel-sözel modulü
     if module_id == 3:
@@ -923,3 +1032,56 @@ def get_modules(request, user_id, week):
     """Həftə və istifadəçiyə görə modulları qaytarır."""
     modules = get_modules_for_week(user_id, week)
     return JsonResponse({'modules': modules})
+
+
+
+
+@login_required
+def save_answer(request, week):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        question_id = data.get('question_id')
+        answer = data.get('answer')
+
+        ClickRecord.objects.create(
+            user=request.user,
+            week=week,
+            module="İşitsel Dikkat Modülü",
+            answers={question_id: answer}
+        )
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'})
+
+
+
+
+
+from django.http import JsonResponse
+from .models import ClickRecord, Question
+import json
+
+def save_answer(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            question_id = data.get('question_id')
+            answer = data.get('answer')
+            
+            # Sualları yoxlayırıq ki, bu həqiqətən 7 və ya 8-ci həftəyə aid olsun
+            question = Question.objects.get(id=question_id)
+            if question.week in [7, 8]:  # 7 və ya 8-ci həftədirsə
+                ClickRecord.objects.create(
+                    user=request.user,
+                    module="İşitsel Dikkat Modülü",
+                    week=question.week,  # Həftəni sual obyektindən götürürük
+                    answer=answer
+                )
+                return JsonResponse({'status': 'success', 'message': 'Cavab uğurla saxlanıldı!'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Yanlış həftə!'}, status=400)
+        except Question.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Sual tapılmadı!'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    return JsonResponse({'status': 'error', 'message': 'Düzgün HTTP metodu deyil!'}, status=400)
+
