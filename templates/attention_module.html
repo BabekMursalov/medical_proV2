@@ -1,140 +1,240 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h3 class="text-center text-primary">{{ user.username }} için İşitsel Dikkat Modülü</h3>
-        <div>
-            <h5>‘Çeşitli kelimelerden oluşan bir uyaran dizisi dinleyeceksiniz. Hedef uyaranı her duyduğunuzda ekrandaki tıkla butonuna basınız.’</h5>
-        </div>
-    </div>
+<div class="container mt-5">
+    <h3 class="text-center text-primary">{{ user.username }} için İşitsel Dikkat Modülü</h3>
 
-        <!-- Audio faylı -->
-        <div class="text-center mt-4">
-            {% if audio_urls %}
-                <div class="audio-player-wrapper mx-auto" style="max-width: 500px;">
+    <!-- Audio seçimi və pleyer -->
+    <div class="text-center mt-4">
+        {% if audio_urls %}
+            <div class="audio-player-wrapper mx-auto" style="max-width: 500px;">
+                <select id="audioSelector" class="form-select mb-3" onchange="changeAudio()">
                     {% for audio_url in audio_urls %}
-                        <audio id="audio{{ forloop.counter }}" class="audio-player" controls>
-                            <source src="{{ audio_url }}" type="audio/mpeg">
-                            Səs yazısı cihazınız tərəfindən dəstəklənmir.
-                        </audio>
+                        <option value="{{ audio_url }}" data-audio-index="{{ forloop.counter0 }}">
+                            {{ forloop.counter }}. uyaran
+                        </option>
                     {% endfor %}
-                </div>
-            {% else %}
-                <p class="text-danger">Səs yazısı mövcud deyil.</p>
-            {% endif %}
+                </select>
+                <audio id="audioPlayer" class="audio-player" controls>
+                    <source src="{{ audio_urls.0 }}" type="audio/mpeg">
+                    Səs yazısı cihazınız tərəfindən dəstəklənmir.
+                </audio>
+            </div>
+        {% else %}
+            <p class="text-danger">Uyaran eklenmemiş.</p>
+        {% endif %}
+    </div>
+    {% if task_text %}
+    <div class="mt-4">
+        <h5 class="text-center text-info"><span style="color: red;">Atama:</span></h5>
+        <pre style="white-space: pre-wrap; font-size: 1rem; text-align: center;">{{ task_text }}</pre>
+    </div>
+    {% else %}
+    <p class="text-danger text-center">Atama eklenmemiş</p>
+    {% endif %}
+    
+    
+    
+    
+
+    <!-- Suallar (yalnız 7 və 8-ci həftələr üçün) -->
+    {% if week|add:"0" == 7 or week|add:"0" == 8 %}
+        <div class="text-center mt-4">
+            <button id="toggleQuestionsButton" class="btn btn-primary">Sorular</button>
+            <div id="questionsContainer" style="display: none;" class="mt-3">
+                <h5>Sorular:</h5>
+                <ul id="questionsList"></ul>
+            </div>
         </div>
-        
-        <!-- Tıkla düyməsi -->
+    {% endif %}
+
+    <!-- Tıkla düyməsi və klik zamanları (yalnız 1-6 həftələr üçün) -->
+    {% if week|add:"0" < 7 %}
         <div class="text-center mt-4">
             <button id="clickButton" class="btn btn-primary btn-lg shadow-lg" style="border-radius: 50px; padding: 15px 40px;">Tıkla</button>
         </div>
-
-        <!-- Klik zamanlarını göstərmək üçün -->
         <div class="mt-5 p-3 bg-light rounded shadow-sm">
             <h5 class="text-secondary">Tıklama zamanları:</h5>
             <ul id="clickTimes" class="list-unstyled"></ul>
         </div>
+    {% endif %}
 
-        <!-- Bitir düyməsi -->
-        <div class="text-center mt-5">
-            <button id="finishButton" class="btn btn-danger btn-lg shadow-lg" style="padding: 15px 40px;">Bitir</button>
-        </div>
+    <!-- Bitir düyməsi -->
+    <div class="text-center mt-5">
+        <button id="finishButton" class="btn btn-danger btn-lg shadow-lg" style="padding: 15px 40px;">Bitir</button>
     </div>
+</div>
 
-    <style>
-        /* Başlıq üçün daha böyük font və parlaq rəng */
-        h3 {
-            font-size: 2rem;
-            font-weight: bold;
+<script>
+    const week = parseInt('{{ week }}'); // Həftə dəyərini əldə edirik
+    const questionsData = {{ questions_data|safe }}; // Sualların məlumatları
+    const audioSelector = document.getElementById('audioSelector');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const questionsContainer = document.getElementById('questionsContainer');
+    const questionsList = document.getElementById('questionsList');
+    const toggleQuestionsButton = document.getElementById('toggleQuestionsButton');
+    const clickButton = document.getElementById('clickButton');
+    const clickTimesList = document.getElementById('clickTimes');
+    const finishButton = document.getElementById('finishButton');
+    const taskText = `{{ task_text|default:''|escapejs }}`; // Dinamik tapşırıq mətni
+    const audioUrls = {{ audio_urls|safe }}; // Audio URL-lər
+    const clickData = []; // Klik məlumatlarını saxlayırıq
+    let answersData = []; // Sual-cavab məlumatlarını saxlayırıq
+    console.log("Cavab əlavə edildi:", answersData);
+    let currentAudioIndex = 0;
+
+
+    
+
+    // Audio dəyişdikdə funksionallıq
+    function changeAudio() {
+        const selectedAudioIndex = audioSelector.selectedIndex;
+        currentAudioIndex = selectedAudioIndex;
+        const selectedAudio = audioSelector.value;
+        audioPlayer.src = selectedAudio;
+        audioPlayer.load();
+        hideQuestions();
+    }
+
+    // Sualları göstər və ya gizlət
+    function toggleQuestions() {
+        if (questionsContainer.style.display === 'none') {
+            renderQuestions();
+            questionsContainer.style.display = 'block';
+        } else {
+            hideQuestions();
         }
+    }
 
-        /* Audio pleyerinə uyumlu dizayn */
-        .audio-player-wrapper {
-            padding: 15px;
-            border: 2px solid #007bff;
-            border-radius: 12px;
-            background-color: #f8f9fa;
-        }
+    function renderQuestions() {
+        questionsList.innerHTML = '';
+        const currentQuestions = questionsData[currentAudioIndex] || [];
+        currentQuestions.forEach((question) => {
+            const questionKey = `audio_${currentAudioIndex}_question_${question.id}`;
+            const savedAnswer = answersData[questionKey] || '';
 
-        /* Tıkla düyməsi üçün hover və vurğulu effekt */
-        #clickButton {
-            background-color: #17a2b8;
-            transition: background-color 0.3s, transform 0.3s;
-        }
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <strong>${question.question_text}</strong>
+                <input type="text" class="form-control my-2" id="answerInput${question.id}" 
+                       value="${savedAnswer}" ${savedAnswer ? 'readonly' : ''}>
+                <button class="btn btn-success" onclick="saveAnswer('${questionKey}', ${question.id})" 
+                       ${savedAnswer ? 'disabled' : ''}>Cevapla</button>
+            `;
+            questionsList.appendChild(li);
+        });
+    }
+    function saveAnswer(questionKey, questionId) {
+    const input = document.getElementById(`answerInput${questionId}`);
+    const answer = input.value.trim();
 
-        #clickButton:hover {
-            background-color: #138496;
-            transform: scale(1.05); /* Düyməni hover zamanı yüngül böyütmə effekti */
-        }
-
-        /* Klik vaxtlarının siyahısı üçün tərtibat */
-        ul#clickTimes {
-            font-size: 1.1rem;
-            color: #343a40;
-        }
-
-        /* Hər klik üçün vurğulu vaxt görünüşü */
-        ul#clickTimes li {
-            background-color: #e9ecef;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Ana konteyner dizaynı */
-        .container {
-            max-width: 600px;
-        }
-    </style>
-
-    <script>
-        let clickData = []; // Klik məlumatlarını saxlamaq üçün massiv
-        const audioElement = document.querySelector('.audio-player'); // İlk audio faylını seçirik
-        const clickButton = document.getElementById('clickButton');
-        const clickTimesList = document.getElementById('clickTimes');
-        const finishButton = document.getElementById('finishButton');
-
-        // Klik zamanı qeydiyyat funksiyası
-        function recordClick(time) {
-            clickData.push({
-                click_time: time
-            });
-            
-            // Ekranda göstərmək üçün
-            const listItem = document.createElement('li');
-            listItem.textContent = `${time.toFixed(2)} saniye`;
-            clickTimesList.appendChild(listItem);
-        }
-
-        // Tıkla düyməsinə klik edilən vaxtı qeyd edirik
-        clickButton.addEventListener('click', () => {
-            const currentTime = audioElement.currentTime;
-            recordClick(currentTime);
+    if (answer) {
+        // Cavabı massivə əlavə edirik
+        answersData.push({
+            question_id: questionId,
+            answer: answer
         });
 
-        // Bitir düyməsinə klik edildikdə bütün məlumatları serverə göndəririk
-        finishButton.addEventListener('click', () => {
-            fetch('/complete-module/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    week: '{{ week }}',
-                    module: 'İşitsel Dikkat Modülü',
-                    click_data: clickData // Bütün klik məlumatlarını əlavə edirik
-                })
-            }).then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('Modul bitdi və artıq yenidən açıla bilməz.');
-                    window.location.href = '/week-selection/';
+        // İstifadəçinin cavab yazmasını bloklayırıq
+        input.readOnly = true;
+        input.nextElementSibling.disabled = true;
+    }
+}
+
+
+    function hideQuestions() {
+        questionsContainer.style.display = 'none';
+        questionsList.innerHTML = '';
+    }
+
+    // 1-6 həftələr üçün klik zamanlarını qeyd edir
+// Click-i qeyd etmək üçün funksiya
+function recordClick(time, audioIndex) {
+    // Klik məlumatlarını yığırıq
+    clickData.push({
+        click_time: time,
+        audio_index: audioIndex
+    });
+
+    // Klik məlumatlarını göstərmək üçün siyahıya əlavə edirik
+    const listItem = document.createElement('li');
+    listItem.textContent = `${time.toFixed(2)} saniye (${audioIndex}-uyaran)`;
+    clickTimesList.appendChild(listItem);
+}
+
+// Tıkla düyməsinə dinləyici əlavə edirik
+if (clickButton) {
+    clickButton.addEventListener('click', () => {
+        if (audioPlayer) {
+            const currentTime = audioPlayer.currentTime; // Audio vaxtını götürürük
+            recordClick(currentTime, currentAudioIndex + 1); // Audio indeksini artıraraq göndəririk
+        } else {
+            console.error("Audio player tapılmadı.");
+        }
+    });
+}
+
+
+    
+
+    // Bitir düyməsi funksiyası
+    finishButton.addEventListener('click', () => {
+        // 7-8 həftələr üçün sual cavablarını yığırıq
+        if (week === 7 || week === 8) {
+            const answerInputs = document.querySelectorAll('.answerInput');
+            answerInputs.forEach(input => {
+                const questionId = input.getAttribute('data-question-id');
+                const answer = input.value.trim();
+                if (answer) {
+                    answersData.push({ question_id: questionId, answer: answer });
                 }
-            }).catch(error => {
-                console.error('Xəta baş verdi:', error);
             });
-        });
-    </script>
+        }
+
+        // Məlumatları serverə göndəririk
+        fetch('/complete-module/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                week: week,
+                module: 'İşitsel Dikkat Modülü',
+                click_data: clickData,
+                answers_data: answersData
+            })
+        }).then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+                  alert('Mödül bitti.');
+                  window.location.href = '/week-selection/';
+              } else {
+                  alert('Xəta baş verdi: ' + data.message);
+              }
+          }).catch(error => {
+              console.error('Xəta baş verdi:', error);
+          });
+    });
+        // Audio dəyərləri düymənin dinamik strukturunu təyin edir
+        if (week === 1 || week === 2 || week === 5 || week === 6) {
+        generateAudioOptions(2);
+    } else if (week === 3 || week === 4) {
+        generateAudioOptions(4);
+    }
+
+    function generateAudioOptions(count) {
+        audioSelector.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const option = document.createElement('option');
+            option.value = audioUrls[i];
+            option.textContent = `${i + 1}. uyaran`;
+            audioSelector.appendChild(option);
+        }
+        audioPlayer.src = audioUrls[0];
+        audioPlayer.load();
+    }
+
+    toggleQuestionsButton?.addEventListener('click', toggleQuestions);
+</script>
 {% endblock %}
