@@ -14,11 +14,12 @@ class ClickRecord(models.Model):
     week = models.IntegerField()
     module = models.CharField(max_length=50)
     button = models.CharField(max_length=50)  # Yeni düymə sahəsi əlavə edilir
-    click_time = models.FloatField()  # Saniyə olaraq klik zamanı
+    click_time = models.FloatField(null=True,blank=True)  # Saniyə olaraq klik zamanı
     click_date = models.DateTimeField(default=timezone.now)
     video_index = models.IntegerField(null=True, blank=True)
+    audio_index = models.IntegerField(null=True, blank=True)
     audio_file = models.ForeignKey('AudioFile', null=True, blank=True, on_delete=models.SET_NULL)  # Səs faylı
-
+    answers = models.JSONField(null=True, blank=True)
     def __str__(self):
         return f'{self.user.username} - {self.module} - {self.button} - {self.click_time} saniyə'
 
@@ -87,6 +88,7 @@ from django.db import models
 class ModuleMedia(models.Model):
     week = models.IntegerField()
     module_name = models.CharField(max_length=100)
+    task_text = models.TextField(null=True, blank=True)
     audio_files = models.ManyToManyField(AudioFile, blank=True)  # Çoxlu səs faylı üçün
     video_files = models.ManyToManyField(VideoFile, blank=True)  # Çoxlu video faylı üçün
 
@@ -181,3 +183,14 @@ class VerbalMemoryRecording(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.module_name} - Week {self.week} - Phase {self.phase}"
+    
+
+
+
+class Question(models.Model):
+    week = models.IntegerField()
+    module_name = models.CharField(max_length=50)
+    question_text = models.TextField()
+    audio_file = models.ForeignKey(AudioFile, null=True, blank=True, on_delete=models.SET_NULL)
+    def __str__(self):
+        return f"{self.module_name} - Həftə {self.week} - Audio: {self.audio_index}: {self.question_text}"
