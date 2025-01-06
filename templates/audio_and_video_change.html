@@ -25,6 +25,7 @@
                 <option value="İşitsel sıralama modulü">İşitsel sıralama modulü</option>
                 <option value="İşitsel-sözel modulü">İşitsel-Sözel Kısa Süreli Bellek Modülü</option>
                 <option value="Karmaşık Çalışma Belleği Modülü">Karmaşık Çalışma Belleği Modülü</option>
+                <option value="Basit Çalışma Belleği Modülü">Basit Çalışma Belleği Modülü</option>
                 <option value="İşitsel-bellek modülü">Sözel Bellek modülü</option>
                 <option value="Figür-zemin modülü">Figür-zemin modülü</option>
             </select>
@@ -121,6 +122,8 @@ function updateFileFields() {
         audioFilesContainer.style.display = 'none';
         videoFilesContainer.style.display = 'block';
         createVideoFileInputs(3); // 3 video faylı
+        taskTextArea.placeholder = 'Görev metni ekleyin';
+    } else if (module === 'Basit Çalışma Belleği Modülü') {
         taskTextArea.placeholder = 'Görev metni ekleyin';
     } else {
         audioFilesContainer.style.display = 'none';
