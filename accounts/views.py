@@ -244,7 +244,7 @@ from .models import ModuleMedia, CompletedModule
 def verbal_memory_module(request, week):
     # Həftə və modul adına uyğun olaraq video fayllarını yükləyirik
     module_media = ModuleMedia.objects.filter(week=week, module_name="İşitsel sıralama modulü").first()
-    
+    task_text = module_media.task_text if module_media else None
     # Debug: Video fayl sayını yoxlamaq üçün
     if module_media:
         video_count = module_media.video_files.count()
@@ -267,6 +267,7 @@ def verbal_memory_module(request, week):
         'video_urls': video_urls,
         'week': week,
         'user': request.user,
+        'task_text': task_text,
     })
 
 
@@ -343,18 +344,34 @@ def calisma_bellegi_view(request, week):
 
 @login_required
 def basit_calisma_view(request, week):
-    basit_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name='Basit Çalışma Belleği Modülü').first()
-    if basit_completed and basit_completed.completed:
-        return render(request, 'completed_message.html', {'message': 'Modül tamamlandı'})
+    # Modul məlumatlarını yükləyirik
+    module_media = ModuleMedia.objects.filter(week=week, module_name="Basit Çalışma Belleği Modülü").first()
+    
+    # Task text dinamik olaraq təyin edilir
+    task_text = module_media.task_text if module_media else None
 
-    return render(request, 'basit_calisma.html', {'week': week})
+    # Modulu tamamlayıb-tamamlamadığını yoxlayırıq
+    basit_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name='Basit Çalışma Belleği Modülü').first()
+    
+    if basit_completed and basit_completed.completed:
+        return render(request, 'completed_message.html', {
+            'message': 'Modül tamamlandı',
+            'week': week
+        })
+
+    # Əks halda `basit_calisma.html` səhifəsini göstəririk
+    return render(request, 'basit_calisma.html', {
+        'week': week,
+        'task_text': task_text,
+    })
+
 
 @login_required
 def karmasik_calisma_view(request, week):
     # Həftə və modul adına uyğun olaraq video fayllarını yükləyirik
     module_media = ModuleMedia.objects.filter(week=week, module_name="Karmaşık Çalışma Belleği Modülü").first()
     video_urls = [video_file.video.url for video_file in module_media.video_files.all()] if module_media else []
-
+    task_text = module_media.task_text if module_media else None
     # Modulu tamamlayıb-tamamlamadığını yoxlayırıq
     karmaşik_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name='Karmaşık Çalışma Belleği Modülü').first()
     if karmaşik_completed and karmaşik_completed.completed:
@@ -362,13 +379,16 @@ def karmasik_calisma_view(request, week):
 
     return render(request, 'karmasik_calisma.html', {
         'week': week,
-        'video_urls': video_urls  # Video URL-ləri şablona ötürürük
+        'video_urls': video_urls,
+        'task_text': task_text,  # Video URL-ləri şablona ötürürük
+
     })
 
 
 
 
 def işitsel_bellek_view(request, week):
+    
     # İşitsel Bellek modulu tamamlanıbsa yoxlayırıq
     işitsel_bellek_completed = CompletedModule.objects.filter(user=request.user, week=week, module_name='İşitsel-bellek modülü').first()
 
@@ -380,6 +400,7 @@ def işitsel_bellek_view(request, week):
 
     # İşitsel Bellek Modulu üçün səs fayllarını yükləyirik
     module_media = ModuleMedia.objects.filter(week=week, module_name="İşitsel-bellek modülü").first()
+    task_text = module_media.task_text if module_media else None
     
     if module_media:
         audio_urls = [audio_file.audio.url for audio_file in module_media.audio_files.all()]
@@ -391,7 +412,7 @@ def işitsel_bellek_view(request, week):
         'week': week,
         'user': request.user,
         'işitsel_bellek_completed': işitsel_bellek_completed.completed if işitsel_bellek_completed else False,
-
+        'task_text': task_text,
     })
 
 
@@ -412,7 +433,7 @@ def işitsel_zemin_view(request, week):
 
     # İşitsel Zemin Modulu üçün səs fayllarını yükləyirik
     module_media = ModuleMedia.objects.filter(week=week, module_name="Figür-zemin modülü").first()
-    
+    task_text = module_media.task_text if module_media else None
     if module_media:
         audio_urls = [audio_file.audio.url for audio_file in module_media.audio_files.all()]
     else:
@@ -423,6 +444,7 @@ def işitsel_zemin_view(request, week):
         'week': week,
         'user': request.user,
         'işitsel_zemin_completed': işitsel_zemin_completed.completed if işitsel_zemin_completed else False,
+        'task_text': task_text,
     })
 
 
