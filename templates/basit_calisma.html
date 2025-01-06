@@ -3,7 +3,9 @@
 {% block content %}
 <div class="container mt-5">
     <h3 class="text-center text-primary">{{user.username}} için Basit Çalışma Belleği</h3>
-    <h3 class="text-center">Bir dakika süre boyunca ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.</h3>
+    <div>
+        <h4>{{ task_text }}</h4>
+    </div>
     <div class="text-center">
         <h5 class="text-danger" id="countdown">60 saniye kaldı</h5>
         <button id="startRecording" class="btn btn-danger mt-3">Ses kaydını başlatınız</button>
