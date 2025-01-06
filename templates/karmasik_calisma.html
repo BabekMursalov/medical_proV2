@@ -7,7 +7,9 @@
     <!-- 1. AŞAMA: Geri sayım və səs qeydi -->
     <div id="asama1" class="mt-5">
         <h5 class="text-center">1. AŞAMA</h5>
-        <h4 class="text-center">‘Bir dakika süre boyunca 100’den geriye doğru ikişer ikişer sayınız. Sesiniz bu aşamada kaydedilecektir.’</h4>
+        <div>
+            <h4>{{ task_text }}</h4>
+        </div>
         <div class="text-center">
             <h5 class="text-danger"  id="countdown1">01:00</h5>
             <button id="startAsama1" class="btn btn-danger">Ses kaydını başlatınız</button>
@@ -18,9 +20,10 @@
 
     <!-- 2. AŞAMA: Videolar və klik izləməsi -->
     <div id="asama2" class="mt-5" style="display:none;">
-        <h5 class="text-center">2. AŞAMA</h5>
-        <h4 class="text-center">‘Sayısal uyaran dizileri (0-9) ekranda sunulacaktır. Sunulan görsel uyaran bir önceki uyaranla aynı olduğunda ekrandaki tıkla butonuna basınız.’</p>
-
+        <h5 class="text-center">2.AŞAMA</h5>
+        <div>
+            <h4>{{ task_text }}</h4>
+        </div>
         <!-- Video 1 -->
         <div id="video1Container" class="text-center">
             <video id="video1" controls width="320">
@@ -28,7 +31,7 @@
                 Videonuz cihaz tərəfindən dəstəklənmir.
             </video>
             <button id="clickButton1" class="btn btn-primary mt-2">tıkla</button>
-            <p id="clickCounter1">0 defa tıklandı.</p>
+            <p id="clickCounter1">0 klik edildi</p>
         </div>
         
         <div id="video2Container" class="text-center" style="display:none;">
@@ -36,8 +39,8 @@
                 <source src="{{ video_urls.1 }}" type="video/mp4">
                 Videonuz cihaz tərəfindən dəstəklənmir.
             </video>
-            <button id="clickButton2" class="btn btn-primary mt-2">tıkla</button>
-            <p id="clickCounter2">0 defa tıklandı.</p>
+            <button id="clickButton2" class="btn btn-primary mt-2">Klikle</button>
+            <p id="clickCounter2">0 klik edildi</p>
         </div>
         
         <div id="video3Container" class="text-center" style="display:none;">
@@ -45,14 +48,14 @@
                 <source src="{{ video_urls.2 }}" type="video/mp4">
                 Videonuz cihaz tərəfindən dəstəklənmir.
             </video>
-            <button id="clickButton3" class="btn btn-primary mt-2">tıkla</button>
-            <p id="clickCounter3">0 defa tıklandı.</p>
+            <button id="clickButton3" class="btn btn-primary mt-2">Klikle</button>
+            <p id="clickCounter3">0 klik edildi</p>
         </div>
         
         <!-- Keçid və Kaydet düymələri -->
         <div class="text-center mt-4">
-            <button id="nextVideo2Button" class="btn btn-primary" style="display:none;">2. videoya geçiniz.</button>
-            <button id="nextVideo3Button" class="btn btn-primary" style="display:none;">3. videoya geçiniz.</button>
+            <button id="nextVideo2Button" class="btn btn-primary" style="display:none;">2-ci Videoya Keç</button>
+            <button id="nextVideo3Button" class="btn btn-primary" style="display:none;">3-cü Videoya Keç</button>
             <button id="kaydetButton" class="btn btn-success" style="display:none;">Kaydet</button>
             <button id="finishAsama2" class="btn btn-warning" style="display:none;" disabled>Bitti</button>
         </div>
@@ -153,7 +156,7 @@ let clickCount3 = 0;
 
 document.getElementById('clickButton1').addEventListener('click', function () {
     clickCount1++;
-    document.getElementById('clickCounter1').textContent = clickCount1 + " defa tıklandı.";
+    document.getElementById('clickCounter1').textContent = clickCount1 + " klik edildi";
     document.getElementById('nextVideo2Button').style.display = 'block'; // 2-ci videoya keç düyməsini göstər
 });
 
@@ -166,7 +169,7 @@ document.getElementById('nextVideo2Button').addEventListener('click', function (
 
 document.getElementById('clickButton2').addEventListener('click', function () {
     clickCount2++;
-    document.getElementById('clickCounter2').textContent = clickCount2 + " defa tıklandı.";
+    document.getElementById('clickCounter2').textContent = clickCount2 + " klik edildi";
 });
 
 document.getElementById('nextVideo3Button').addEventListener('click', function () {
@@ -180,7 +183,7 @@ document.getElementById('nextVideo3Button').addEventListener('click', function (
 
 document.getElementById('clickButton3').addEventListener('click', function () {
     clickCount3++;
-    document.getElementById('clickCounter3').textContent = clickCount3 + " defa tıklandı.";
+    document.getElementById('clickCounter3').textContent = clickCount3 + " klik edildi";
 });
 
 // "Kaydet" düyməsinə klik edildikdə klik saylarını database-ə göndər
@@ -201,7 +204,7 @@ document.getElementById('kaydetButton').addEventListener('click', function () {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Tıklamalar kaydedildi');
+            alert('Klik sayları uğurla qeyd edildi.');
         } else {
             alert('Xəta baş verdi.');
         }
@@ -225,7 +228,7 @@ document.getElementById('finishAsama2').addEventListener('click', function () {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Modül tamamlanmıştır');
+            alert('Modul bitdi və artıq yenidən açıla bilməz.');
             window.location.href = '/calisma-bellegi/' + '{{ week }}';
         }
     }).catch(err => {
@@ -249,7 +252,7 @@ document.getElementById('finishAsama2').addEventListener('click', function () {
     }).then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            alert('Modül tamamlanmıştır');
+            alert('Modul bitdi və artıq yenidən açıla bilməz.');
             window.location.href = '/calisma-bellegi/' + '{{ week }}';
         }
     }).catch(err => {
