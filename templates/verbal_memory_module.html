@@ -116,7 +116,7 @@ finishButton.addEventListener('click', () => {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                alert('Modul bitdi və artıq yenidən açıla bilməz.');
+                alert('Bu modül tamamlanmıştır. Tekrar açılamaz.');
                 window.location.href = '/week-selection/';
             }
         })
