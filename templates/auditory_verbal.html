@@ -61,15 +61,18 @@
     let isRecording = false;
 
     const phases = [
-        [
-            { instruction: "Hedef Harf: A harfi ile başlayan kelimeler – Ağaç, Askı, Akıl, Ayna, Alfabe, Akarsu", duration: 60 },
-            { instruction: "Hedef Harf: K harfiyle başlayan kelimeler - Kalem, Kitap, Kedi, Kuş, Kapı, Karpuz", duration: 60 }
-        ],
-        [
-            { instruction: "‘Bir dakika içinde ekrandaki kategoriye ait kelimeleri söyleyiniz. Sesiniz bu aşamada kaydedilecektir. Hedef kategori: Zeka oyunları – Satranç, Dama,  Sudoku, Yapboz ’", duration: 60 }
-        ]
-    ];
-
+    [
+        { instruction: `Bir dakika içinde ekrandaki harf ile başlayan kelimeleri söyleyiniz. Söyleyeceğiniz kelime bir insan ismi, şehir-ülke isimleri ve sayılar haricinde olmalıdır. Sesiniz bu aşamada kaydedilecektir. Örnek Hedef harf: A harfiyle başlayan kelimeler - Ağaç, Askı, Akıl, Ayna, Alfabe, Akarsu.
+        
+        Hedef harf: K harfiyle başlayan kelimeler`, duration: 60 },
+        { instruction: `Bir dakika içinde ekrandaki harf ile başlayan kelimeleri söyleyiniz. Söyleyeceğiniz kelime bir insan ismi, şehir-ülke isimleri ve sayılar haricinde olmalıdır. Sesiniz bu aşamada kaydedilecektir. Örnek Hedef harf: A harfiyle başlayan kelimeler - Ağaç, Askı, Akıl, Ayna, Alfabe, Akarsu.
+        
+        Hedef harf: S harfiyle başlayan kelimeler`, duration: 60 }
+    ],
+    [
+        { instruction: "Bir dakika içinde ekrandaki kategoriye ait kelimeleri söyleyiniz. Sesiniz bu aşamada kaydedilecektir. Hedef kategori: Zeka oyunları – Satranç, Dama, Sudoku, Yapboz", duration: 60 }
+    ]
+];
     function startPhase(phase) {
         currentPhase = phase;
         currentSubtask = 0;
